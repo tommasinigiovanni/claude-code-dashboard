@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/giovannitommasini/git/personal/**)",
+      "Bash(npm create:*)",
+      "Bash(cp -r claude-code-dashboard-temp/* claude-code-dashboard-temp/.* /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/)",
+      "Bash(rm -rf claude-code-dashboard-temp)",
+      "Bash(npm install:*)",
+      "Bash(mkdir -p /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/src-tauri/src)",
+      "Bash(mkdir -p /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/src-tauri/icons)",
+      "Bash(npx shadcn@latest:*)"
+    ]
+  }
+}
