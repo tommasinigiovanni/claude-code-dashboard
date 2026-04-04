@@ -22,6 +22,32 @@ Claude Code can do incredible things beyond coding: write editorial plans, manag
 
 The goal is simple: make Claude Code accessible to everyone, not just developers.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/launcher.png" alt="Launcher" width="800" />
+  <br/>
+  <em>Launcher — Launch Claude Code, manage tmux sessions, view environment summary</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/terminal-tmux.png" alt="Embedded Terminal with tmux" width="800" />
+  <br/>
+  <em>Embedded Terminal — Claude Code on top, shell on bottom, with tmux split panes</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/health-check.png" alt="MCP Health Check" width="800" />
+  <br/>
+  <em>Health Check — Real-time MCP server connection status</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" alt="Settings" width="800" />
+  <br/>
+  <em>Settings — Theme, language, launch mode, tmux, Telegram bot configuration</em>
+</p>
+
 ## Features
 
 ### Core Dashboard
