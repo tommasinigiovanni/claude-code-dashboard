@@ -19,18 +19,30 @@ import {
   PanelLeftOpenIcon,
 } from 'lucide-react'
 
-const mainNavItems: { id: Page; labelKey: TranslationKey; icon: ReactNode }[] = [
-  { id: 'mcp', labelKey: 'nav.mcp', icon: <ServerIcon className="size-4" /> },
-  { id: 'skills', labelKey: 'nav.skills', icon: <ZapIcon className="size-4" /> },
-  { id: 'subagents', labelKey: 'nav.subagents', icon: <BotIcon className="size-4" /> },
-  { id: 'launcher', labelKey: 'nav.launcher', icon: <RocketIcon className="size-4" /> },
-  { id: 'profiles', labelKey: 'nav.profiles', icon: <LayersIcon className="size-4" /> },
-  { id: 'logs', labelKey: 'nav.logs', icon: <ScrollTextIcon className="size-4" /> },
-  { id: 'health', labelKey: 'nav.health', icon: <ActivityIcon className="size-4" /> },
-  { id: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon className="size-4" /> },
+type NavItem = { id: Page; labelKey: TranslationKey; icon: ReactNode }
+type NavSection = NavItem[]
+
+const navSections: NavSection[] = [
+  // Launcher first
+  [
+    { id: 'launcher', labelKey: 'nav.launcher', icon: <RocketIcon className="size-4" /> },
+  ],
+  // Core management
+  [
+    { id: 'mcp', labelKey: 'nav.mcp', icon: <ServerIcon className="size-4" /> },
+    { id: 'skills', labelKey: 'nav.skills', icon: <ZapIcon className="size-4" /> },
+    { id: 'subagents', labelKey: 'nav.subagents', icon: <BotIcon className="size-4" /> },
+  ],
+  // Tools & monitoring
+  [
+    { id: 'profiles', labelKey: 'nav.profiles', icon: <LayersIcon className="size-4" /> },
+    { id: 'logs', labelKey: 'nav.logs', icon: <ScrollTextIcon className="size-4" /> },
+    { id: 'health', labelKey: 'nav.health', icon: <ActivityIcon className="size-4" /> },
+    { id: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon className="size-4" /> },
+  ],
 ]
 
-const bottomNavItems: { id: Page; labelKey: TranslationKey; icon: ReactNode }[] = [
+const bottomNavItems: NavItem[] = [
   { id: 'docs', labelKey: 'nav.docs', icon: <BookOpenIcon className="size-4" /> },
   { id: 'credits', labelKey: 'nav.credits', icon: <HeartIcon className="size-4" /> },
 ]
@@ -95,7 +107,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </div>
       <Separator />
       <nav className="flex-1 px-2 py-3 space-y-1">
-        {mainNavItems.map(renderItem)}
+        {navSections.map((section, i) => (
+          <div key={i}>
+            {i > 0 && <Separator className="my-2" />}
+            {section.map(renderItem)}
+          </div>
+        ))}
       </nav>
       <Separator />
       <div className="px-2 py-2">

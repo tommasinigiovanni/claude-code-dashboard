@@ -20,8 +20,8 @@ export function HealthPage() {
   const runCheck = async () => {
     setLoading(true)
     try {
-      const data = await invoke<McpHealthResult[]>('health_check_mcp')
-      setResults(data)
+      const data = await invoke<[string, boolean, string][]>('health_check_mcp')
+      setResults(data.map(([name, connected, status]) => ({ name, connected, status })))
       setHasRun(true)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)

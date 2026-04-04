@@ -758,51 +758,49 @@ pub async fn toggle_plugin(plugin_id: String, enabled: bool) -> Result<(), Strin
 
 #[tauri::command]
 pub async fn health_check_mcp() -> Result<Vec<(String, bool, String)>, String> {
-    // Run claude with a quick check to see MCP status
-    let output = std::process::Command::new("claude")
-        .args(["--print", "--output-format", "stream-json", "--verbose", "--max-turns", "0"])
+    use std::io::BufRead;
+
+    // Run claude -p with a simple prompt, parse the init event for MCP status
+    let mut child = std::process::Command::new("claude")
+        .args(["--print", "--output-format", "stream-json", "--verbose"])
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
-        .spawn();
+        .spawn()
+        .map_err(|e| format!("Failed to start claude: {}", e))?;
 
-    let mut results = Vec::new();
-
-    match output {
-        Ok(mut child) => {
-            // Send empty message and close stdin
-            if let Some(mut stdin) = child.stdin.take() {
-                let _ = std::io::Write::write_all(&mut stdin, b"health check\n");
-                drop(stdin);
-            }
-
-            let output = child.wait_with_output()
-                .map_err(|e| format!("Wait error: {}", e))?;
-
-            let stdout = String::from_utf8_lossy(&output.stdout);
-
-            // Parse the init event which contains mcp_servers status
-            for line in stdout.lines() {
-                if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
-                    if val.get("type").and_then(|t| t.as_str()) == Some("system")
-                        && val.get("subtype").and_then(|t| t.as_str()) == Some("init")
-                    {
-                        if let Some(servers) = val.get("mcp_servers").and_then(|s| s.as_array()) {
-                            for server in servers {
-                                let name = server.get("name").and_then(|n| n.as_str()).unwrap_or("unknown").to_string();
-                                let status = server.get("status").and_then(|s| s.as_str()).unwrap_or("unknown").to_string();
-                                let connected = status == "connected";
-                                results.push((name, connected, status));
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        Err(e) => return Err(format!("Failed to start claude: {}", e)),
+    // Send a minimal message and close stdin immediately
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = std::io::Write::write_all(&mut stdin, b"ok\n");
+        drop(stdin);
     }
 
+    let stdout = child.stdout.take().ok_or("No stdout")?;
+    let reader = std::io::BufReader::new(stdout);
+    let mut results = Vec::new();
+
+    // Read lines until we find the init event (has mcp_servers)
+    for line in reader.lines().take(50).flatten() {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&line) {
+            if val.get("type").and_then(|t| t.as_str()) == Some("system")
+                && val.get("subtype").and_then(|t| t.as_str()) == Some("init")
+            {
+                if let Some(servers) = val.get("mcp_servers").and_then(|s| s.as_array()) {
+                    for server in servers {
+                        let name = server.get("name").and_then(|n| n.as_str()).unwrap_or("unknown").to_string();
+                        let status = server.get("status").and_then(|s| s.as_str()).unwrap_or("unknown").to_string();
+                        let connected = status == "connected";
+                        results.push((name, connected, status));
+                    }
+                }
+                // Kill the process, we got what we need
+                let _ = child.kill();
+                break;
+            }
+        }
+    }
+
+    let _ = child.wait();
     Ok(results)
 }
 
