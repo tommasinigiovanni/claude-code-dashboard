@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import { useI18n } from '@/i18n/useI18n'
 
 export const SETTINGS_KEY = 'claude-dashboard-settings'
 
@@ -50,17 +51,22 @@ function applyTheme(theme: 'dark' | 'light' | 'system') {
   }
 }
 
-const terminalOptions: { id: TerminalApp; label: string }[] = [
-  { id: 'chat', label: 'Chat' },
-  { id: 'embedded', label: 'Terminale' },
-  { id: 'Terminal', label: 'Terminal' },
-  { id: 'iTerm', label: 'iTerm2' },
-  { id: 'Warp', label: 'Warp' },
-  { id: 'Alacritty', label: 'Alacritty' },
-  { id: 'custom', label: 'Altro…' },
-]
+const terminalOptionIds: TerminalApp[] = ['chat', 'embedded', 'Terminal', 'iTerm', 'Warp', 'Alacritty', 'custom']
+
+function getTerminalLabel(id: TerminalApp, tFn: (key: string) => string): string {
+  switch (id) {
+    case 'chat': return 'Chat'
+    case 'embedded': return tFn('settings.terminal')
+    case 'Terminal': return 'Terminal'
+    case 'iTerm': return 'iTerm2'
+    case 'Warp': return 'Warp'
+    case 'Alacritty': return 'Alacritty'
+    case 'custom': return '...'
+  }
+}
 
 export function SettingsPage() {
+  const { t } = useI18n()
   const [settings, setSettings] = useState<DashboardSettings>(getSettings)
 
   useEffect(() => {
@@ -71,25 +77,25 @@ export function SettingsPage() {
     const updated = { ...settings, [key]: value }
     setSettings(updated)
     saveSettings(updated)
-    toast.success('Impostazione salvata')
+    toast.success(t('settings.saved'))
   }
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Impostazioni</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
 
       {/* Theme */}
       <div className="space-y-3 mb-8">
-        <Label>Tema</Label>
+        <Label>{t('settings.theme')}</Label>
         <div className="flex gap-2">
-          {(['dark', 'light', 'system'] as const).map((t) => (
+          {(['dark', 'light', 'system'] as const).map((theme) => (
             <Button
-              key={t}
-              variant={settings.theme === t ? 'default' : 'outline'}
+              key={theme}
+              variant={settings.theme === theme ? 'default' : 'outline'}
               size="sm"
-              onClick={() => updateSetting('theme', t)}
+              onClick={() => updateSetting('theme', theme)}
             >
-              {t === 'dark' ? '🌙 Dark' : t === 'light' ? '☀️ Light' : '💻 Sistema'}
+              {theme === 'dark' ? t('settings.dark') : theme === 'light' ? t('settings.light') : t('settings.system')}
             </Button>
           ))}
         </div>
@@ -97,16 +103,16 @@ export function SettingsPage() {
 
       {/* Terminal */}
       <div className="space-y-3 mb-8">
-        <Label>Terminale</Label>
+        <Label>{t('settings.terminal')}</Label>
         <div className="flex gap-2 flex-wrap">
-          {terminalOptions.map((t) => (
+          {terminalOptionIds.map((id) => (
             <Button
-              key={t.id}
-              variant={settings.terminalApp === t.id ? 'default' : 'outline'}
+              key={id}
+              variant={settings.terminalApp === id ? 'default' : 'outline'}
               size="sm"
-              onClick={() => updateSetting('terminalApp', t.id)}
+              onClick={() => updateSetting('terminalApp', id)}
             >
-              {t.label}
+              {getTerminalLabel(id, t as (key: string) => string)}
             </Button>
           ))}
         </div>
@@ -118,13 +124,13 @@ export function SettingsPage() {
           />
         )}
         <p className="text-xs text-muted-foreground">
-          Terminale usato per avviare Claude Code dal Launcher.
+          {t('settings.terminalDesc')}
         </p>
       </div>
 
       {/* Language */}
       <div className="space-y-3 mb-8">
-        <Label>{settings.language === 'it' ? 'Lingua' : 'Language'}</Label>
+        <Label>{t('settings.language')}</Label>
         <div className="flex gap-2">
           <Button
             variant={settings.language === 'it' ? 'default' : 'outline'}
@@ -146,9 +152,9 @@ export function SettingsPage() {
       {/* tmux */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <Label>Usa tmux</Label>
+          <Label>{t('settings.useTmux')}</Label>
           <p className="text-xs text-muted-foreground mt-1">
-            Le sessioni Claude Code persistono anche chiudendo la dashboard.
+            {t('settings.tmuxDesc')}
           </p>
         </div>
         <Switch
@@ -159,21 +165,21 @@ export function SettingsPage() {
 
       {/* Claude path override */}
       <div className="space-y-3 mb-8">
-        <Label htmlFor="claude-path">Percorso Claude Code (override)</Label>
+        <Label htmlFor="claude-path">{t('settings.claudePath')}</Label>
         <Input
           id="claude-path"
           value={settings.claudePathOverride}
           onChange={(e) => updateSetting('claudePathOverride', e.target.value)}
-          placeholder="Lascia vuoto per usare il PATH di sistema"
+          placeholder={t('settings.claudePathPlaceholder')}
         />
         <p className="text-xs text-muted-foreground">
-          Se Claude Code non viene trovato automaticamente, specifica il percorso completo qui.
+          {t('settings.claudePathDesc')}
         </p>
       </div>
 
       {/* Storage */}
       <div className="space-y-3 mb-8">
-        <Label>Dati locali</Label>
+        <Label>{t('settings.localData')}</Label>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -184,24 +190,24 @@ export function SettingsPage() {
                   localStorage.removeItem(k)
                 }
               }
-              toast.success('Cronologia chat eliminata')
+              toast.success(t('common.chatCleared'))
             }}
           >
-            Pulisci cronologia chat
+            {t('settings.clearChatHistory')}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               localStorage.removeItem('claude-dashboard-recent-launches')
-              toast.success('Avvii recenti eliminati')
+              toast.success(t('common.recentCleared'))
             }}
           >
-            Pulisci avvii recenti
+            {t('settings.clearRecentLaunches')}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Elimina i dati salvati localmente (chat, avvii recenti). Le configurazioni Claude Code non vengono toccate.
+          {t('settings.localDataDesc')}
         </p>
       </div>
 

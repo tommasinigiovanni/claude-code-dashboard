@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { useConfigStore } from '@/store/configStore'
+import { useI18n } from '@/i18n/useI18n'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import {
 
 export function ContextSwitcher() {
   const { mode, projectPath, switchToGlobal, switchToProject, recentProjects } = useConfigStore()
+  const { t } = useI18n()
 
   const handleSelectProject = () => {
     setTimeout(async () => {
@@ -28,8 +30,8 @@ export function ContextSwitcher() {
   }
 
   const label = mode === 'global'
-    ? 'Global'
-    : projectPath?.split('/').pop() ?? 'Project'
+    ? t('topbar.global')
+    : projectPath?.split('/').pop() ?? t('common.project')
 
   return (
     <DropdownMenu>
@@ -43,18 +45,18 @@ export function ContextSwitcher() {
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuItem onClick={() => switchToGlobal()}>
           <span className="mr-2">🌐</span>
-          Global
+          {t('topbar.global')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSelectProject}>
           <span className="mr-2">📁</span>
-          Seleziona progetto…
+          {t('topbar.selectProject')}
         </DropdownMenuItem>
         {recentProjects.length > 0 && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Progetti recenti</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('topbar.recentProjects')}</DropdownMenuLabel>
               {recentProjects.slice(0, 10).map((path) => {
                 const parts = path.split('/').filter(Boolean)
                 const shortName = parts.slice(-2).join('/')

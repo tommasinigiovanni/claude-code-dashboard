@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import { useConfigStore } from '@/store/configStore'
+import { useI18n } from '@/i18n/useI18n'
 import type { McpServerUI } from '@/types/claude'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -17,13 +18,14 @@ interface McpCardProps {
 
 export function McpCard({ mcp, onEdit }: McpCardProps) {
   const removeMcp = useConfigStore((s) => s.removeMcp)
+  const { t } = useI18n()
 
   const handleDelete = async () => {
     try {
       await removeMcp(mcp.id, mcp.scope)
-      toast.success(`MCP "${mcp.id}" rimosso`)
+      toast.success(`MCP "${mcp.id}" ${t('common.removed')}`)
     } catch (e) {
-      toast.error(`Errore: ${e}`)
+      toast.error(`${t('common.error')}: ${e}`)
     }
   }
 
@@ -35,16 +37,14 @@ export function McpCard({ mcp, onEdit }: McpCardProps) {
         <div className="flex items-center gap-2">
           <span className="font-medium">{mcp.id}</span>
           <Badge variant={mcp.scope === 'global' ? 'default' : 'secondary'} className="text-xs">
-            {mcp.scope}
+            {mcp.scope === 'global' ? t('common.global') : t('common.project')}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground font-mono truncate">
           {mcp.command} {mcp.args?.join(' ')}
         </p>
         {envKeys.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            Env: {envKeys.join(', ')}
-          </p>
+          <p className="text-xs text-muted-foreground">Env: {envKeys.join(', ')}</p>
         )}
       </div>
       <DropdownMenu>
@@ -53,11 +53,11 @@ export function McpCard({ mcp, onEdit }: McpCardProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onEdit(mcp)}>
-            Modifica
+            {t('mcp.edit')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={handleDelete}>
-            Elimina
+            {t('mcp.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -12,10 +12,12 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { DocsPage } from '@/pages/DocsPage'
 import { CreditsPage } from '@/pages/CreditsPage'
 import { CommandPalette } from '@/components/CommandPalette'
+import { useI18n } from '@/i18n/useI18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 
 function MainContent() {
+  const { t } = useI18n()
   const activePage = useUiStore((s) => s.activePage)
   const isLoading = useConfigStore((s) => s.isLoading)
   const error = useConfigStore((s) => s.error)
@@ -23,7 +25,7 @@ function MainContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Caricamento configurazione…</p>
+        <p className="text-muted-foreground">{t('common.loading')}</p>
       </div>
     )
   }
@@ -32,7 +34,7 @@ function MainContent() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center space-y-2">
-          <p className="text-destructive font-medium">Errore</p>
+          <p className="text-destructive font-medium">{t('common.error')}</p>
           <p className="text-sm text-muted-foreground">{error}</p>
         </div>
       </div>

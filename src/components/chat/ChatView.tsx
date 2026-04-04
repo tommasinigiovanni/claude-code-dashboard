@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event'
 import ReactMarkdown from 'react-markdown'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useI18n } from '@/i18n/useI18n'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -60,6 +61,7 @@ function saveChatHistory(projectPath: string | null | undefined, messages: ChatM
 }
 
 export function ChatView({ projectPath }: ChatViewProps) {
+  const { t } = useI18n()
   const history = loadChatHistory(projectPath)
   const [messages, setMessages] = useState<ChatMessage[]>(history.messages)
   const [input, setInput] = useState('')
@@ -190,7 +192,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
             case 'error':
               setMessages((prev) => [
                 ...prev,
-                { role: 'assistant', content: `Errore: ${content}`, timestamp: new Date() },
+                { role: 'assistant', content: `${t('common.error')}: ${content}`, timestamp: new Date() },
               ])
               setCurrentResponse('')
               setIsLoading(false)
@@ -202,7 +204,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
     } catch (e) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `Errore: ${e}`, timestamp: new Date() },
+        { role: 'assistant', content: `${t('common.error')}: ${e}`, timestamp: new Date() },
       ])
       setIsLoading(false)
     }
@@ -226,9 +228,9 @@ export function ChatView({ projectPath }: ChatViewProps) {
         {messages.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
             <span className="text-4xl">💬</span>
-            <h3 className="text-lg font-semibold">Chat con Claude Code</h3>
+            <h3 className="text-lg font-semibold">{t('chat.title')}</h3>
             <p className="text-sm text-muted-foreground max-w-md">
-              Scrivi un messaggio per iniziare. Puoi anche incollare o trascinare immagini.
+              {t('chat.welcome')}
             </p>
             {projectPath && (
               <p className="text-xs text-muted-foreground font-mono">{projectPath}</p>
@@ -275,7 +277,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
               {currentThinking && showThinking && (
                 <details open className="mb-2">
                   <summary className="text-xs text-muted-foreground cursor-pointer">
-                    Ragionamento...
+                    {t('chat.thinking')}
                   </summary>
                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
                     {currentThinking.slice(-500)}
@@ -348,7 +350,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="Scrivi un messaggio... (Cmd+V per incollare immagini)"
+            placeholder={t('chat.placeholder')}
             rows={1}
             className="resize-none min-h-[44px] max-h-[200px] flex-1"
             disabled={isLoading}
@@ -358,13 +360,13 @@ export function ChatView({ projectPath }: ChatViewProps) {
             disabled={(!input.trim() && attachedImages.length === 0) || isLoading}
             className="shrink-0"
           >
-            Invia
+            {t('chat.send')}
           </Button>
         </div>
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-3">
             <p className="text-xs text-muted-foreground">
-              Shift+Enter per andare a capo · Trascina o incolla immagini
+              {t('chat.shiftEnter')}
             </p>
             {messages.length > 0 && (
               <button
@@ -378,7 +380,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
                 className="text-xs text-muted-foreground hover:text-foreground"
                 disabled={isLoading}
               >
-                Nuova conversazione
+                {t('chat.newConversation')}
               </button>
             )}
           </div>
@@ -389,7 +391,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
               onChange={(e) => setShowThinking(e.target.checked)}
               className="rounded"
             />
-            Mostra ragionamento
+            {t('chat.showThinking')}
           </label>
         </div>
       </div>

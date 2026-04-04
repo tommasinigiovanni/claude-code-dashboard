@@ -6,6 +6,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useI18n } from '@/i18n/useI18n'
 
 interface CommandItem {
   id: string
@@ -28,6 +29,7 @@ interface CommandPaletteProps {
 }
 
 export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPaletteProps) {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [items, setItems] = useState<CommandItem[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -48,13 +50,13 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
 
     // Build command list
     const navItems: CommandItem[] = [
-      { id: 'nav-mcp', label: 'MCP Servers', category: 'Navigazione', action: () => navigate('mcp') },
-      { id: 'nav-skills', label: 'Skills & Plugins', category: 'Navigazione', action: () => navigate('skills') },
-      { id: 'nav-subagents', label: 'Sub-agents', category: 'Navigazione', action: () => navigate('subagents') },
-      { id: 'nav-launcher', label: 'Launcher', category: 'Navigazione', action: () => navigate('launcher') },
-      { id: 'nav-settings', label: 'Settings', category: 'Navigazione', action: () => navigate('settings') },
-      { id: 'nav-docs', label: 'Documentazione', category: 'Navigazione', action: () => navigate('docs') },
-      { id: 'nav-credits', label: 'Credits', category: 'Navigazione', action: () => navigate('credits') },
+      { id: 'nav-mcp', label: t('nav.mcp'), category: t('palette.navigation'), action: () => navigate('mcp') },
+      { id: 'nav-skills', label: t('nav.skills'), category: t('palette.navigation'), action: () => navigate('skills') },
+      { id: 'nav-subagents', label: t('nav.subagents'), category: t('palette.navigation'), action: () => navigate('subagents') },
+      { id: 'nav-launcher', label: t('nav.launcher'), category: t('palette.navigation'), action: () => navigate('launcher') },
+      { id: 'nav-settings', label: t('nav.settings'), category: t('palette.navigation'), action: () => navigate('settings') },
+      { id: 'nav-docs', label: t('nav.docs'), category: t('palette.navigation'), action: () => navigate('docs') },
+      { id: 'nav-credits', label: t('nav.credits'), category: t('palette.navigation'), action: () => navigate('credits') },
     ]
 
     // Load tmux sessions
@@ -63,7 +65,7 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
         const tmuxItems: CommandItem[] = sessions.map((s) => ({
           id: `tmux-${s.name}`,
           label: s.name.replace('claude-', ''),
-          category: 'Sessioni tmux',
+          category: t('palette.tmuxSessions'),
           action: async () => {
             let cwd: string | null = null
             try {
@@ -78,7 +80,7 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
       .catch(() => setItems(navItems))
 
     setTimeout(() => inputRef.current?.focus(), 50)
-  }, [open, navigate, onOpenChange, onTmuxAttach])
+  }, [open, navigate, onOpenChange, onTmuxAttach, t])
 
   const filtered = items.filter((item) =>
     item.label.toLowerCase().includes(query.toLowerCase()) ||
@@ -130,13 +132,13 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Cerca pagina o sessione tmux..."
+            placeholder={t('palette.search')}
             className="border-0 focus-visible:ring-0 shadow-none"
           />
         </div>
         <div className="max-h-[300px] overflow-auto p-2">
           {filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">Nessun risultato</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('palette.noResults')}</p>
           )}
           {Array.from(grouped.entries()).map(([category, categoryItems]) => (
             <div key={category}>

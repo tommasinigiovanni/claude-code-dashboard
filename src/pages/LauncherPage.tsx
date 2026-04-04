@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { getSettings } from '@/pages/SettingsPage'
 import { EmbeddedTerminal } from '@/components/terminal/EmbeddedTerminal'
 import { ChatView } from '@/components/chat/ChatView'
+import { useI18n } from '@/i18n/useI18n'
 
 interface TmuxSession {
   name: string
@@ -16,6 +17,7 @@ interface TmuxSession {
 }
 
 function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
+  const { t } = useI18n()
   const [sessions, setSessions] = useState<TmuxSession[]>([])
 
   useEffect(() => {
@@ -26,9 +28,9 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
     try {
       await invoke('tmux_kill_session', { sessionName: name })
       setSessions((prev) => prev.filter((s) => s.name !== name))
-      toast.success(`Sessione "${name}" terminata`)
+      toast.success(`"${name}" ${t('common.terminated')}`)
     } catch (e) {
-      toast.error(`Errore: ${e}`)
+      toast.error(`${t('common.error')}: ${e}`)
     }
   }
 
@@ -36,7 +38,7 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-sm font-medium text-muted-foreground mb-3">Sessioni tmux attive</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('launcher.tmuxSessions')}</h3>
       <div className="space-y-2">
         {sessions.map((s) => (
           <div key={s.name} className="flex items-center justify-between rounded-lg border border-border p-3">
@@ -48,10 +50,10 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => onAttach(s.name)}>
-                Riattacca
+                {t('agents.reattach')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleKill(s.name)} className="text-destructive">
-                Termina
+                {t('agents.terminate')}
               </Button>
             </div>
           </div>
@@ -121,6 +123,7 @@ function addRecentLaunch(path: string) {
 export function LauncherPage() {
   const { mode, projectPath, mcpServers, subAgents, localSkills, installedPlugins, cloudConnectors } =
     useConfigStore()
+  const { t } = useI18n()
   const [claudeInstalled, setClaudeInstalled] = useState<boolean | null>(null)
   const [recentLaunches, setRecentLaunches] = useState<string[]>([])
   const [showEmbedded, setShowEmbedded] = useState(false)
@@ -176,9 +179,9 @@ export function LauncherPage() {
         addRecentLaunch(targetPath)
         setRecentLaunches(getRecentLaunches())
       }
-      toast.success('Claude Code avviato!')
+      toast.success(t('common.started'))
     } catch (e) {
-      toast.error(`Errore: ${e}`)
+      toast.error(`${t('common.error')}: ${e}`)
     }
   }
 
@@ -189,7 +192,7 @@ export function LauncherPage() {
         await handleLaunch(selected)
       }
     } catch (e) {
-      toast.error(`Errore: ${e}`)
+      toast.error(`${t('common.error')}: ${e}`)
     }
   }
 
@@ -213,7 +216,7 @@ export function LauncherPage() {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(launchPath ?? projectPath ?? '')
-                  toast.success('Path copiato!')
+                  toast.success(t('common.pathCopied'))
                 }}
                 title="Clicca per copiare"
                 className="cursor-pointer"
@@ -225,7 +228,7 @@ export function LauncherPage() {
             )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => { setShowEmbedded(false); setTmuxAttachSession(null) }}>
-            Chiudi
+            {t('launcher.close')}
           </Button>
         </div>
         <div className="flex-1 min-h-0">
@@ -246,7 +249,7 @@ export function LauncherPage() {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Launcher</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('launcher.title')}</h2>
 
       {/* Status */}
       <div className="rounded-lg border border-border p-4 mb-6">
@@ -256,10 +259,10 @@ export function LauncherPage() {
             <p className="font-medium">Claude Code</p>
             <p className="text-sm text-muted-foreground">
               {claudeInstalled === null
-                ? 'Verifica installazione…'
+                ? t('launcher.checking')
                 : claudeInstalled
-                  ? 'Installato e disponibile'
-                  : 'Non trovato nel PATH'}
+                  ? t('launcher.installed')
+                  : t('launcher.notFound')}
             </p>
           </div>
           {claudeInstalled !== null && (
@@ -277,10 +280,10 @@ export function LauncherPage() {
 
         <div className="flex gap-2">
           <Button onClick={() => handleLaunch()} disabled={!claudeInstalled}>
-            ▶ Avvia Claude Code {isEmbedded ? '(integrato)' : ''}
+            {t('launcher.launch')} {isEmbedded ? `(${t('launcher.embeddedTerminal')})` : ''}
           </Button>
           <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled}>
-            📁 Seleziona cartella e avvia
+            {t('launcher.selectAndLaunch')}
           </Button>
         </div>
       </div>
@@ -307,7 +310,7 @@ export function LauncherPage() {
 
       {/* Contesto attivo */}
       <div className="rounded-lg border border-border p-4 mb-6">
-        <p className="text-sm font-medium mb-1">Contesto attivo</p>
+        <p className="text-sm font-medium mb-1">{t('launcher.activeContext')}</p>
         <p className="text-sm text-muted-foreground">
           {mode === 'global' ? 'Global (~/.claude/settings.json)' : `Project: ${projectPath}`}
         </p>
@@ -327,7 +330,7 @@ export function LauncherPage() {
       {/* Recent launches */}
       {recentLaunches.length > 0 && (
         <>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Avvii recenti</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('launcher.recentLaunches')}</h3>
           <div className="space-y-2">
             {recentLaunches.map((path) => (
               <div
