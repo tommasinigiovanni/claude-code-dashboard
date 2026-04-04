@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { invoke } from '@tauri-apps/api/core'
 import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
@@ -76,6 +77,25 @@ function App() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const setActivePage = useUiStore((s) => s.setActivePage)
+
+  // Auto-start Telegram bot if configured
+  useEffect(() => {
+    const settings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+    if (settings.telegramBotToken) {
+      invoke('telegram_bot_status').then((status: unknown) => {
+        const s = status as { running: boolean }
+        if (!s.running) {
+          const chatId = settings.telegramChatId ? parseInt(settings.telegramChatId) : null
+          invoke('telegram_start_bot', {
+            botToken: settings.telegramBotToken,
+            allowedChatId: chatId || null,
+            projectPath: null,
+            autoApprove: false,
+          }).catch(() => {})
+        }
+      }).catch(() => {})
+    }
+  }, [])
 
   // Cmd+K shortcut
   useEffect(() => {
