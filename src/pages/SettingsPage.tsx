@@ -15,6 +15,7 @@ export interface DashboardSettings {
   terminalApp: TerminalApp
   customTerminalPath: string
   useTmux: boolean
+  language: 'it' | 'en'
 }
 
 const defaultSettings: DashboardSettings = {
@@ -23,6 +24,7 @@ const defaultSettings: DashboardSettings = {
   terminalApp: 'Terminal',
   customTerminalPath: '',
   useTmux: false,
+  language: 'it',
 }
 
 export function getSettings(): DashboardSettings {
@@ -118,6 +120,27 @@ export function SettingsPage() {
         <p className="text-xs text-muted-foreground">
           Terminale usato per avviare Claude Code dal Launcher.
         </p>
+      </div>
+
+      {/* Language */}
+      <div className="space-y-3 mb-8">
+        <Label>{settings.language === 'it' ? 'Lingua' : 'Language'}</Label>
+        <div className="flex gap-2">
+          <Button
+            variant={settings.language === 'it' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => updateSetting('language', 'it')}
+          >
+            🇮🇹 Italiano
+          </Button>
+          <Button
+            variant={settings.language === 'en' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => updateSetting('language', 'en')}
+          >
+            🇬🇧 English
+          </Button>
+        </div>
       </div>
 
       {/* tmux */}

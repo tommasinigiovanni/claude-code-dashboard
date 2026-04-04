@@ -1,0 +1,137 @@
+export type Locale = 'it' | 'en'
+
+const translations = {
+  // Sidebar
+  'nav.mcp': { it: 'MCP Servers', en: 'MCP Servers' },
+  'nav.skills': { it: 'Skills & Plugins', en: 'Skills & Plugins' },
+  'nav.subagents': { it: 'Sub-agents', en: 'Sub-agents' },
+  'nav.launcher': { it: 'Launcher', en: 'Launcher' },
+  'nav.settings': { it: 'Impostazioni', en: 'Settings' },
+  'nav.docs': { it: 'Documentazione', en: 'Documentation' },
+  'nav.credits': { it: 'Credits', en: 'Credits' },
+
+  // TopBar
+  'topbar.dashboard': { it: 'Dashboard', en: 'Dashboard' },
+  'topbar.global': { it: 'Globale', en: 'Global' },
+  'topbar.selectProject': { it: 'Seleziona progetto…', en: 'Select project…' },
+  'topbar.recentProjects': { it: 'Progetti recenti', en: 'Recent projects' },
+
+  // MCP Page
+  'mcp.title': { it: 'MCP Servers', en: 'MCP Servers' },
+  'mcp.addMcp': { it: '+ Aggiungi MCP', en: '+ Add MCP' },
+  'mcp.cloudConnectors': { it: 'Cloud Connectors (claude.ai)', en: 'Cloud Connectors (claude.ai)' },
+  'mcp.localServers': { it: 'MCP Servers Locali', en: 'Local MCP Servers' },
+  'mcp.noServers': { it: 'Nessun MCP server configurato.', en: 'No MCP servers configured.' },
+  'mcp.edit': { it: 'Modifica', en: 'Edit' },
+  'mcp.delete': { it: 'Elimina', en: 'Delete' },
+  'mcp.addTitle': { it: 'Aggiungi MCP', en: 'Add MCP' },
+  'mcp.editTitle': { it: 'Modifica MCP', en: 'Edit MCP' },
+  'mcp.name': { it: 'Nome', en: 'Name' },
+  'mcp.command': { it: 'Comando', en: 'Command' },
+  'mcp.args': { it: 'Argomenti (separati da spazi)', en: 'Arguments (space-separated)' },
+  'mcp.env': { it: 'Variabili ambiente (KEY=VALUE, una per riga)', en: 'Environment variables (KEY=VALUE, one per line)' },
+  'mcp.scope': { it: 'Scope', en: 'Scope' },
+  'mcp.save': { it: 'Salva', en: 'Save' },
+  'mcp.add': { it: 'Aggiungi', en: 'Add' },
+  'mcp.saving': { it: 'Salvataggio…', en: 'Saving…' },
+
+  // Skills Page
+  'skills.title': { it: 'Skills & Plugins', en: 'Skills & Plugins' },
+  'skills.installedPlugins': { it: 'Plugins Installati', en: 'Installed Plugins' },
+  'skills.availableSkills': { it: 'Skills Disponibili', en: 'Available Skills' },
+  'skills.configSkills': { it: 'Skills da Configurazione', en: 'Configuration Skills' },
+  'skills.noSkills': { it: 'Nessuna Skill o Plugin configurato.', en: 'No Skills or Plugins configured.' },
+  'skills.active': { it: 'attivo', en: 'active' },
+  'skills.disabled': { it: 'disattivato', en: 'disabled' },
+
+  // Sub-agents Page
+  'agents.title': { it: 'Sub-agents', en: 'Sub-agents' },
+  'agents.addAgent': { it: '+ Aggiungi Sub-agent', en: '+ Add Sub-agent' },
+  'agents.userAgents': { it: 'User Agents', en: 'User Agents' },
+  'agents.pluginAgents': { it: 'Agents da Plugin', en: 'Plugin Agents' },
+  'agents.configAgents': { it: 'Agents da Configurazione', en: 'Configuration Agents' },
+  'agents.customAgents': { it: 'Agents Personalizzati', en: 'Custom Agents' },
+  'agents.noAgents': { it: 'Nessun Sub-agent configurato.', en: 'No Sub-agents configured.' },
+  'agents.editAgent': { it: 'Modifica Agent', en: 'Edit Agent' },
+  'agents.addAgentTitle': { it: 'Aggiungi Sub-agent', en: 'Add Sub-agent' },
+  'agents.editAgentTitle': { it: 'Modifica Sub-agent', en: 'Edit Sub-agent' },
+  'agents.description': { it: 'Descrizione', en: 'Description' },
+  'agents.prompt': { it: 'Prompt', en: 'Prompt' },
+  'agents.terminate': { it: 'Termina', en: 'Terminate' },
+  'agents.reattach': { it: 'Riattacca', en: 'Reattach' },
+
+  // Launcher Page
+  'launcher.title': { it: 'Launcher', en: 'Launcher' },
+  'launcher.installed': { it: 'Installato e disponibile', en: 'Installed and available' },
+  'launcher.notFound': { it: 'Non trovato nel PATH', en: 'Not found in PATH' },
+  'launcher.checking': { it: 'Verifica installazione…', en: 'Checking installation…' },
+  'launcher.launch': { it: '▶ Avvia Claude Code', en: '▶ Launch Claude Code' },
+  'launcher.selectAndLaunch': { it: '📁 Seleziona cartella e avvia', en: '📁 Select folder and launch' },
+  'launcher.recentLaunches': { it: 'Avvii recenti', en: 'Recent launches' },
+  'launcher.tmuxSessions': { it: 'Sessioni tmux attive', en: 'Active tmux sessions' },
+  'launcher.activeContext': { it: 'Contesto attivo', en: 'Active context' },
+  'launcher.close': { it: 'Chiudi', en: 'Close' },
+  'launcher.embeddedTerminal': { it: 'Terminale integrato', en: 'Embedded terminal' },
+  'launcher.chatWithClaude': { it: 'Chat con Claude', en: 'Chat with Claude' },
+
+  // Chat
+  'chat.title': { it: 'Chat con Claude Code', en: 'Chat with Claude Code' },
+  'chat.placeholder': { it: 'Scrivi un messaggio... (Cmd+V per incollare immagini)', en: 'Type a message... (Cmd+V to paste images)' },
+  'chat.send': { it: 'Invia', en: 'Send' },
+  'chat.thinking': { it: 'Ragionamento...', en: 'Thinking...' },
+  'chat.showThinking': { it: 'Mostra ragionamento', en: 'Show thinking' },
+  'chat.newConversation': { it: 'Nuova conversazione', en: 'New conversation' },
+  'chat.shiftEnter': { it: 'Shift+Enter per andare a capo · Trascina o incolla immagini', en: 'Shift+Enter for new line · Drag or paste images' },
+  'chat.welcome': { it: 'Scrivi un messaggio per iniziare. Puoi anche incollare o trascinare immagini.', en: 'Type a message to start. You can also paste or drag images.' },
+
+  // Settings
+  'settings.title': { it: 'Impostazioni', en: 'Settings' },
+  'settings.theme': { it: 'Tema', en: 'Theme' },
+  'settings.dark': { it: '🌙 Dark', en: '🌙 Dark' },
+  'settings.light': { it: '☀️ Light', en: '☀️ Light' },
+  'settings.system': { it: '💻 Sistema', en: '💻 System' },
+  'settings.terminal': { it: 'Terminale', en: 'Terminal' },
+  'settings.terminalDesc': { it: 'Terminale usato per avviare Claude Code dal Launcher.', en: 'Terminal used to launch Claude Code from the Launcher.' },
+  'settings.useTmux': { it: 'Usa tmux', en: 'Use tmux' },
+  'settings.tmuxDesc': { it: 'Le sessioni Claude Code persistono anche chiudendo la dashboard.', en: 'Claude Code sessions persist even after closing the dashboard.' },
+  'settings.claudePath': { it: 'Percorso Claude Code (override)', en: 'Claude Code path (override)' },
+  'settings.claudePathPlaceholder': { it: 'Lascia vuoto per usare il PATH di sistema', en: 'Leave empty to use system PATH' },
+  'settings.claudePathDesc': { it: 'Se Claude Code non viene trovato automaticamente, specifica il percorso completo qui.', en: 'If Claude Code is not found automatically, specify the full path here.' },
+  'settings.language': { it: 'Lingua', en: 'Language' },
+  'settings.localData': { it: 'Dati locali', en: 'Local data' },
+  'settings.clearChatHistory': { it: 'Pulisci cronologia chat', en: 'Clear chat history' },
+  'settings.clearRecentLaunches': { it: 'Pulisci avvii recenti', en: 'Clear recent launches' },
+  'settings.localDataDesc': { it: 'Elimina i dati salvati localmente. Le configurazioni Claude Code non vengono toccate.', en: 'Delete locally saved data. Claude Code configurations are not affected.' },
+  'settings.saved': { it: 'Impostazione salvata', en: 'Setting saved' },
+
+  // Command Palette
+  'palette.search': { it: 'Cerca pagina o sessione tmux...', en: 'Search page or tmux session...' },
+  'palette.navigation': { it: 'Navigazione', en: 'Navigation' },
+  'palette.tmuxSessions': { it: 'Sessioni tmux', en: 'tmux Sessions' },
+  'palette.noResults': { it: 'Nessun risultato', en: 'No results' },
+
+  // Common
+  'common.global': { it: 'Globale', en: 'Global' },
+  'common.project': { it: 'Progetto', en: 'Project' },
+  'common.cloud': { it: 'cloud', en: 'cloud' },
+  'common.error': { it: 'Errore', en: 'Error' },
+  'common.loading': { it: 'Caricamento configurazione…', en: 'Loading configuration…' },
+  'common.pathCopied': { it: 'Path copiato!', en: 'Path copied!' },
+  'common.removed': { it: 'rimosso', en: 'removed' },
+  'common.added': { it: 'aggiunto', en: 'added' },
+  'common.updated': { it: 'aggiornato', en: 'updated' },
+  'common.activated': { it: 'attivato', en: 'activated' },
+  'common.deactivated': { it: 'disattivato', en: 'deactivated' },
+  'common.started': { it: 'Claude Code avviato!', en: 'Claude Code launched!' },
+  'common.terminated': { it: 'terminata', en: 'terminated' },
+  'common.chatCleared': { it: 'Cronologia chat eliminata', en: 'Chat history cleared' },
+  'common.recentCleared': { it: 'Avvii recenti eliminati', en: 'Recent launches cleared' },
+} as const
+
+export type TranslationKey = keyof typeof translations
+
+export function t(key: TranslationKey, locale: Locale): string {
+  return translations[key]?.[locale] ?? key
+}
+
+export default translations

@@ -1,18 +1,20 @@
 import { useUiStore, type Page } from '@/store/uiStore'
+import { useI18n } from '@/i18n/useI18n'
+import type { TranslationKey } from '@/i18n/translations'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 
-const mainNavItems: { id: Page; label: string; icon: string }[] = [
-  { id: 'mcp', label: 'MCP Servers', icon: '🔌' },
-  { id: 'skills', label: 'Skills & Plugins', icon: '⚡' },
-  { id: 'subagents', label: 'Sub-agents', icon: '🤖' },
-  { id: 'launcher', label: 'Launcher', icon: '🚀' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
-  { id: 'docs', label: 'Documentazione', icon: '📖' },
+const mainNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
+  { id: 'mcp', labelKey: 'nav.mcp', icon: '🔌' },
+  { id: 'skills', labelKey: 'nav.skills', icon: '⚡' },
+  { id: 'subagents', labelKey: 'nav.subagents', icon: '🤖' },
+  { id: 'launcher', labelKey: 'nav.launcher', icon: '🚀' },
+  { id: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
+  { id: 'docs', labelKey: 'nav.docs', icon: '📖' },
 ]
 
-const bottomNavItems: { id: Page; label: string; icon: string }[] = [
-  { id: 'credits', label: 'Credits', icon: '💜' },
+const bottomNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
+  { id: 'credits', labelKey: 'nav.credits', icon: '💜' },
 ]
 
 interface SidebarProps {
@@ -22,12 +24,13 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { activePage, setActivePage } = useUiStore()
+  const { t } = useI18n()
 
-  const renderItem = (item: { id: Page; label: string; icon: string }) => (
+  const renderItem = (item: { id: Page; labelKey: TranslationKey; icon: string }) => (
     <button
       key={item.id}
       onClick={() => setActivePage(item.id)}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? t(item.labelKey) : undefined}
       className={cn(
         'flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors',
         collapsed && 'justify-center px-2',
@@ -37,7 +40,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <span className="text-base">{item.icon}</span>
-      {!collapsed && item.label}
+      {!collapsed && t(item.labelKey)}
     </button>
   )
 
@@ -53,7 +56,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <button
           onClick={onToggle}
           className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 rounded"
-          title={collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'}
         >
           {collapsed ? '▶' : '◀'}
         </button>

@@ -8,7 +8,27 @@
       "Bash(npm install:*)",
       "Bash(mkdir -p /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/src-tauri/src)",
       "Bash(mkdir -p /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/src-tauri/icons)",
-      "Bash(npx shadcn@latest:*)"
+      "Bash(npx shadcn@latest:*)",
+      "Bash(npx tauri:*)",
+      "Bash(rustup update:*)",
+      "Bash(cargo check:*)",
+      "Bash(npm run:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(npx tsc:*)",
+      "Bash(lsof -ti:5173)",
+      "Bash(xargs kill:*)",
+      "Bash(cargo add:*)",
+      "Bash(cargo build:*)",
+      "Bash(grep -r \"pick_folder\\\\|pick_file\" /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/src-tauri/target/debug/build/tauri-plugin-dialog-*/out/)",
+      "Bash(grep -rn \"fn.*pick_folder\\\\|fn.*blocking\" ~/.cargo/registry/src/*/tauri-plugin-dialog-2.6.0/src/)",
+      "Bash(pkill -f \"claude-code-dashboard\")",
+      "Bash(python3 -c \"import sys,json; d=json.loads\\(sys.stdin.readline\\(\\)\\); print\\(json.dumps\\({k:d[k] for k in list\\(d.keys\\(\\)\\)[:5]}, indent=2\\)\\)\")",
+      "Bash(grep -l \"cwd\\\\|projectPath\\\\|workingDir\" ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(grep \"cwd\" ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(claude --print --output-format stream-json --input-format stream-json)",
+      "Bash(claude --print --output-format stream-json --verbose)",
+      "Bash(timeout 15 claude --print --output-format stream-json --input-format stream-json --verbose)",
+      "Bash(git add:*)"
     ]
   }
 }
