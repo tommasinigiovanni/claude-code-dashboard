@@ -16,7 +16,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            chat::chat_send_message,
+            chat::chat_start,
+            chat::chat_send,
+            chat::chat_approve,
             chat::save_temp_image,
             config::read_config,
             config::read_dashboard_data,
