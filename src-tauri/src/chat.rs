@@ -31,6 +31,7 @@ pub async fn chat_send_message(
     message: String,
     session_id: Option<String>,
     project_path: Option<String>,
+    auto_approve: Option<bool>,
 ) -> Result<String, String> {
     let is_continuation = session_id.is_some();
     let sess_id = session_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
@@ -40,6 +41,10 @@ pub async fn chat_send_message(
     std::thread::spawn(move || {
         let mut cmd = Command::new("claude");
         cmd.args(["--print", "--output-format", "stream-json", "--verbose"]);
+
+        if auto_approve.unwrap_or(false) {
+            cmd.arg("--dangerously-skip-permissions");
+        }
 
         if is_continuation {
             cmd.args(["-c", "-r", &sess_id_clone]);

@@ -170,9 +170,14 @@ async fn run_claude_print(
     chat_id: i64,
     message: &str,
     project_path: Option<&str>,
+    skip_permissions: bool,
 ) -> Result<String, String> {
     let mut cmd = Command::new("claude");
     cmd.args(["--print"]);
+
+    if skip_permissions {
+        cmd.arg("--dangerously-skip-permissions");
+    }
 
     // Check if we have an existing session for this chat
     let existing_session = CHAT_SESSIONS.lock().unwrap().get(&chat_id).cloned();
@@ -223,6 +228,7 @@ pub async fn telegram_start_bot(
     bot_token: String,
     allowed_chat_id: Option<i64>,
     project_path: Option<String>,
+    auto_approve: Option<bool>,
 ) -> Result<TelegramBotStatus, String> {
     if BOT_RUNNING.load(Ordering::Relaxed) {
         return Err("Bot is already running".to_string());
@@ -263,6 +269,7 @@ pub async fn telegram_start_bot(
     // Start polling in background
     let token = bot_token.clone();
     let project = project_path.clone();
+    let skip_permissions = auto_approve.unwrap_or(false);
     tokio::spawn(async move {
         let client = reqwest::Client::new();
         let mut offset: i64 = 0;
@@ -433,7 +440,7 @@ pub async fn telegram_start_bot(
                                 .await;
 
                             // Forward to Claude Code
-                            match run_claude_print(msg.chat.id, &text, project.as_deref()).await {
+                            match run_claude_print(msg.chat.id, &text, project.as_deref(), skip_permissions).await {
                                 Ok(response) => {
                                     let _ = send_telegram_message(
                                         &client,

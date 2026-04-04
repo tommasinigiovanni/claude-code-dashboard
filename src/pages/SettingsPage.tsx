@@ -22,6 +22,7 @@ export interface DashboardSettings {
   language: 'it' | 'en'
   telegramBotToken: string
   telegramChatId: string
+  autoApprovePermissions: boolean
 }
 
 const defaultSettings: DashboardSettings = {
@@ -33,6 +34,7 @@ const defaultSettings: DashboardSettings = {
   language: 'it',
   telegramBotToken: '',
   telegramChatId: '',
+  autoApprovePermissions: false,
 }
 
 export function getSettings(): DashboardSettings {
@@ -81,6 +83,7 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
         botToken: settings.telegramBotToken,
         allowedChatId: chatId || null,
         projectPath: null,
+        autoApprove: settings.autoApprovePermissions,
       })
       setBotRunning(result.running)
       setBotName(result.bot_name ?? null)
@@ -288,6 +291,20 @@ export function SettingsPage() {
               ? 'Invia /chatid al bot per ottenere il tuo Chat ID. Se lo imposti, solo tu potrai usare il bot.'
               : 'Send /chatid to the bot to get your Chat ID. If set, only you can use the bot.'}
           </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">{locale === 'it' ? 'Auto-approva permessi' : 'Auto-approve permissions'}</p>
+              <p className="text-xs text-muted-foreground">
+                {locale === 'it'
+                  ? '⚠️ Permette a Claude di modificare file senza chiedere conferma. Necessario per Chat e Telegram.'
+                  : '⚠️ Allows Claude to edit files without asking. Required for Chat and Telegram.'}
+              </p>
+            </div>
+            <Switch
+              checked={settings.autoApprovePermissions}
+              onCheckedChange={(checked) => updateSetting('autoApprovePermissions', !!checked)}
+            />
+          </div>
           <TelegramBotControls settings={settings} locale={locale} />
         </div>
       </div>

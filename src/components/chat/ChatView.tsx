@@ -160,10 +160,12 @@ export function ChatView({ projectPath }: ChatViewProps) {
     ])
 
     try {
+      const chatSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
       const sid = await invoke<string>('chat_send_message', {
         message: fullMessage,
         sessionId: sessionId,
         projectPath: projectPath ?? undefined,
+        autoApprove: chatSettings.autoApprovePermissions ?? false,
       })
 
       if (!sessionId) setSessionId(sid)
