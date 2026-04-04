@@ -11,6 +11,25 @@ static BOT_RUNNING: AtomicBool = AtomicBool::new(false);
 struct TelegramUpdate {
     update_id: i64,
     message: Option<TelegramMessage>,
+    callback_query: Option<TelegramCallbackQuery>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TelegramCallbackQuery {
+    id: String,
+    from: TelegramUser,
+    message: Option<TelegramCallbackMessage>,
+    data: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TelegramUser {
+    id: i64,
+}
+
+#[derive(Debug, Deserialize)]
+struct TelegramCallbackMessage {
+    chat: TelegramChat,
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,6 +100,65 @@ async fn send_telegram_message(
             .map_err(|e| format!("Send error: {}", e))?;
     }
     Ok(())
+}
+
+async fn send_telegram_with_buttons(
+    client: &reqwest::Client,
+    token: &str,
+    chat_id: i64,
+    text: &str,
+    buttons: Vec<Vec<(String, String)>>, // rows of (label, callback_data)
+) -> Result<(), String> {
+    let keyboard: Vec<Vec<serde_json::Value>> = buttons
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|(label, data)| {
+                    serde_json::json!({"text": label, "callback_data": data})
+                })
+                .collect()
+        })
+        .collect();
+
+    client
+        .post(&format!("https://api.telegram.org/bot{}/sendMessage", token))
+        .json(&serde_json::json!({
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown",
+            "reply_markup": {"inline_keyboard": keyboard}
+        }))
+        .send()
+        .await
+        .map_err(|e| format!("Send error: {}", e))?;
+    Ok(())
+}
+
+async fn answer_callback(client: &reqwest::Client, token: &str, callback_id: &str, text: &str) {
+    let _ = client
+        .post(&format!("https://api.telegram.org/bot{}/answerCallbackQuery", token))
+        .json(&serde_json::json!({
+            "callback_query_id": callback_id,
+            "text": text
+        }))
+        .send()
+        .await;
+}
+
+fn get_tmux_sessions() -> Vec<String> {
+    let output = std::process::Command::new("tmux")
+        .args(["list-sessions", "-F", "#{session_name}"])
+        .output();
+    match output {
+        Ok(o) if o.status.success() => {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .filter(|l| l.starts_with("claude-"))
+                .map(|l| l.to_string())
+                .collect()
+        }
+        _ => Vec::new(),
+    }
 }
 
 async fn run_claude_print(message: &str, project_path: Option<&str>) -> Result<String, String> {
@@ -210,14 +288,26 @@ pub async fn telegram_start_bot(
 
                         if let Some(text) = msg.text {
                             // Special commands
-                            if text == "/start" {
-                                let _ = send_telegram_message(
-                                    &client,
-                                    &token,
-                                    msg.chat.id,
-                                    "🤖 Claude Code Dashboard Bot attivo!\n\nInvia un messaggio e lo inoltrerò a Claude Code.",
-                                )
-                                .await;
+                            if text == "/start" || text == "/menu" {
+                                let mut buttons = vec![
+                                    vec![
+                                        ("📋 Sessioni".to_string(), "cmd:sessions".to_string()),
+                                        ("❓ Help".to_string(), "cmd:help".to_string()),
+                                    ],
+                                ];
+                                // Add session buttons
+                                let sessions = get_tmux_sessions();
+                                for sess in sessions.iter().take(6) {
+                                    let short = sess.replace("claude-", "");
+                                    buttons.push(vec![
+                                        (format!("🔄 {}", short), format!("switch:{}", sess)),
+                                    ]);
+                                }
+                                let _ = send_telegram_with_buttons(
+                                    &client, &token, msg.chat.id,
+                                    "🤖 *Claude Code Dashboard*\n\nInvia un messaggio per parlare con Claude Code.\nUsa i bottoni per navigare.",
+                                    buttons,
+                                ).await;
                                 continue;
                             }
 
@@ -233,24 +323,20 @@ pub async fn telegram_start_bot(
                             }
 
                             if text == "/sessions" {
-                                let output = std::process::Command::new("tmux")
-                                    .args(["list-sessions", "-F", "#{session_name} (#{session_windows} windows)"])
-                                    .output();
-                                let sessions_text = match output {
-                                    Ok(o) if o.status.success() => {
-                                        let list = String::from_utf8_lossy(&o.stdout);
-                                        let claude_sessions: Vec<&str> = list.lines()
-                                            .filter(|l| l.starts_with("claude-"))
-                                            .collect();
-                                        if claude_sessions.is_empty() {
-                                            "Nessuna sessione tmux attiva.".to_string()
-                                        } else {
-                                            format!("📋 *Sessioni attive:*\n\n{}", claude_sessions.join("\n"))
-                                        }
-                                    }
-                                    _ => "Nessuna sessione tmux attiva.".to_string(),
-                                };
-                                let _ = send_telegram_message(&client, &token, msg.chat.id, &sessions_text).await;
+                                let sessions = get_tmux_sessions();
+                                if sessions.is_empty() {
+                                    let _ = send_telegram_message(&client, &token, msg.chat.id, "Nessuna sessione tmux attiva.").await;
+                                } else {
+                                    let buttons: Vec<Vec<(String, String)>> = sessions.iter().map(|s| {
+                                        let short = s.replace("claude-", "");
+                                        vec![(format!("🔄 {}", short), format!("switch:{}", s))]
+                                    }).collect();
+                                    let _ = send_telegram_with_buttons(
+                                        &client, &token, msg.chat.id,
+                                        "📋 *Sessioni attive* — tocca per switchare:",
+                                        buttons,
+                                    ).await;
+                                }
                                 continue;
                             }
 
@@ -333,6 +419,60 @@ pub async fn telegram_start_bot(
                                     .await;
                                 }
                             }
+                        }
+                    }
+
+                    // Handle callback queries (button presses)
+                    if let Some(cb) = update.callback_query {
+                        let chat_id = cb.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
+                        let data = cb.data.unwrap_or_default();
+
+                        if data.starts_with("switch:") {
+                            let sess_name = data.strip_prefix("switch:").unwrap();
+                            let cwd_output = std::process::Command::new("tmux")
+                                .args(["display-message", "-t", sess_name, "-p", "#{pane_current_path}"])
+                                .output();
+                            match cwd_output {
+                                Ok(o) if o.status.success() => {
+                                    let cwd = String::from_utf8_lossy(&o.stdout).trim().to_string();
+                                    answer_callback(&client, &token, &cb.id, &format!("✅ {}", sess_name)).await;
+                                    let _ = send_telegram_message(
+                                        &client, &token, chat_id,
+                                        &format!("✅ Switched to *{}*\n📁 `{}`", sess_name, cwd),
+                                    ).await;
+                                }
+                                _ => {
+                                    answer_callback(&client, &token, &cb.id, "❌ Session not found").await;
+                                }
+                            }
+                        } else if data == "cmd:sessions" {
+                            answer_callback(&client, &token, &cb.id, "📋 Loading...").await;
+                            let sessions = get_tmux_sessions();
+                            if sessions.is_empty() {
+                                let _ = send_telegram_message(&client, &token, chat_id, "Nessuna sessione attiva.").await;
+                            } else {
+                                let buttons: Vec<Vec<(String, String)>> = sessions.iter().map(|s| {
+                                    let short = s.replace("claude-", "");
+                                    vec![(format!("🔄 {}", short), format!("switch:{}", s))]
+                                }).collect();
+                                let _ = send_telegram_with_buttons(
+                                    &client, &token, chat_id,
+                                    "📋 *Sessioni attive:*",
+                                    buttons,
+                                ).await;
+                            }
+                        } else if data == "cmd:help" {
+                            answer_callback(&client, &token, &cb.id, "❓").await;
+                            let _ = send_telegram_message(
+                                &client, &token, chat_id,
+                                "🤖 *Claude Code Dashboard Bot*\n\n\
+                                /menu — Menu principale con bottoni\n\
+                                /sessions — Lista sessioni con bottoni\n\
+                                /switch <nome> — Cambia progetto\n\
+                                /chatid — Il tuo Chat ID\n\
+                                /help — Questo messaggio\n\n\
+                                Invia qualsiasi messaggio per parlare con Claude Code.",
+                            ).await;
                         }
                     }
                 }
