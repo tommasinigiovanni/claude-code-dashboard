@@ -1,11 +1,16 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter};
 
 static BOT_RUNNING: AtomicBool = AtomicBool::new(false);
+
+// Track Claude session IDs per Telegram chat
+static CHAT_SESSIONS: once_cell::sync::Lazy<Mutex<HashMap<i64, String>>> =
+    once_cell::sync::Lazy::new(|| Mutex::new(HashMap::new()));
 
 #[derive(Debug, Deserialize)]
 struct TelegramUpdate {
@@ -161,9 +166,26 @@ fn get_tmux_sessions() -> Vec<String> {
     }
 }
 
-async fn run_claude_print(message: &str, project_path: Option<&str>) -> Result<String, String> {
+async fn run_claude_print(
+    chat_id: i64,
+    message: &str,
+    project_path: Option<&str>,
+) -> Result<String, String> {
     let mut cmd = Command::new("claude");
     cmd.args(["--print"]);
+
+    // Check if we have an existing session for this chat
+    let existing_session = CHAT_SESSIONS.lock().unwrap().get(&chat_id).cloned();
+
+    if let Some(ref sess_id) = existing_session {
+        // Continue existing session
+        cmd.args(["-c", "-r", sess_id]);
+    } else {
+        // New session
+        let new_id = uuid::Uuid::new_v4().to_string();
+        cmd.args(["--session-id", &new_id]);
+        CHAT_SESSIONS.lock().unwrap().insert(chat_id, new_id);
+    }
 
     if let Some(path) = project_path {
         cmd.current_dir(path);
@@ -292,6 +314,7 @@ pub async fn telegram_start_bot(
                                 let mut buttons = vec![
                                     vec![
                                         ("📋 Sessioni".to_string(), "cmd:sessions".to_string()),
+                                        ("🆕 Nuova chat".to_string(), "cmd:new".to_string()),
                                         ("❓ Help".to_string(), "cmd:help".to_string()),
                                     ],
                                 ];
@@ -356,9 +379,11 @@ pub async fn telegram_start_bot(
                                         let cwd = String::from_utf8_lossy(&o.stdout).trim().to_string();
                                         // Update the project path for future messages
                                         // Note: this changes the working directory for claude --print
+                                        // Reset session for new project context
+                                        CHAT_SESSIONS.lock().unwrap().remove(&msg.chat.id);
                                         let _ = send_telegram_message(
                                             &client, &token, msg.chat.id,
-                                            &format!("✅ Switched to *{}*\n📁 `{}`\n\nI prossimi messaggi verranno inviati a Claude Code in questa cartella.", sess_name, cwd),
+                                            &format!("✅ Switched to *{}*\n📁 `{}`\n\n🆕 Nuova conversazione in questo progetto.", sess_name, cwd),
                                         ).await;
                                     }
                                     _ => {
@@ -368,6 +393,15 @@ pub async fn telegram_start_bot(
                                         ).await;
                                     }
                                 }
+                                continue;
+                            }
+
+                            if text == "/new" {
+                                CHAT_SESSIONS.lock().unwrap().remove(&msg.chat.id);
+                                let _ = send_telegram_message(
+                                    &client, &token, msg.chat.id,
+                                    "🆕 Nuova conversazione iniziata. Claude non ricorderà i messaggi precedenti.",
+                                ).await;
                                 continue;
                             }
 
@@ -399,7 +433,7 @@ pub async fn telegram_start_bot(
                                 .await;
 
                             // Forward to Claude Code
-                            match run_claude_print(&text, project.as_deref()).await {
+                            match run_claude_print(msg.chat.id, &text, project.as_deref()).await {
                                 Ok(response) => {
                                     let _ = send_telegram_message(
                                         &client,
@@ -461,6 +495,13 @@ pub async fn telegram_start_bot(
                                     buttons,
                                 ).await;
                             }
+                        } else if data == "cmd:new" {
+                            CHAT_SESSIONS.lock().unwrap().remove(&chat_id);
+                            answer_callback(&client, &token, &cb.id, "🆕 Nuova conversazione").await;
+                            let _ = send_telegram_message(
+                                &client, &token, chat_id,
+                                "🆕 Nuova conversazione iniziata!",
+                            ).await;
                         } else if data == "cmd:help" {
                             answer_callback(&client, &token, &cb.id, "❓").await;
                             let _ = send_telegram_message(
@@ -469,9 +510,11 @@ pub async fn telegram_start_bot(
                                 /menu — Menu principale con bottoni\n\
                                 /sessions — Lista sessioni con bottoni\n\
                                 /switch <nome> — Cambia progetto\n\
+                                /new — Nuova conversazione (reset memoria)\n\
                                 /chatid — Il tuo Chat ID\n\
                                 /help — Questo messaggio\n\n\
-                                Invia qualsiasi messaggio per parlare con Claude Code.",
+                                Claude ricorda i messaggi precedenti nella stessa conversazione.\n\
+                                Usa /new o 🆕 per ricominciare.",
                             ).await;
                         }
                     }
