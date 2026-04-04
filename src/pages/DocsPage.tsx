@@ -1,7 +1,48 @@
+import ReactMarkdown from 'react-markdown'
 import { useI18n } from '@/i18n/useI18n'
 
 const docs = {
   it: [
+    {
+      title: 'Guida rapida',
+      content: `### Primo avvio
+
+1. **Seleziona un progetto** — usa il Context Switcher in alto a destra per scegliere un progetto dai recenti o selezionarne uno nuovo
+2. **Vai al Launcher** — clicca su Launcher nella sidebar
+3. **Avvia Claude Code** — scegli tra Chat (per un'esperienza semplice) o Terminale (per utenti esperti)
+
+### Per utenti non tecnici
+
+La modalità **Chat** è pensata per te. Vai in **Impostazioni → Terminale → Chat**, poi apri il Launcher e clicca "Avvia Claude Code". Vedrai un'interfaccia familiare dove puoi:
+
+- **Scrivere messaggi** come in una chat normale
+- **Allegare immagini** trascinandole o con Cmd+V
+- **Vedere le risposte** formattate in modo leggibile
+- **Mantenere la cronologia** delle conversazioni
+
+Claude Code ha accesso ai file del progetto, può cercare informazioni online, inviare email, gestire calendario e molto altro grazie agli MCP connectors.
+
+### Per sviluppatori
+
+La modalità **Terminale** ti dà accesso diretto a Claude Code con:
+
+- **tmux** — abilita nelle Impostazioni per sessioni persistenti che sopravvivono alla chiusura dell'app
+- **Cmd+K** — Command Palette per navigare rapidamente tra pagine e sessioni tmux
+- **Tab sessioni** — switcha tra più sessioni tmux attive dalla barra in alto
+
+### Gestire la configurazione
+
+- **MCP Servers** — aggiungi server MCP locali per estendere le capacità di Claude (database, API, filesystem)
+- **Skills & Plugins** — attiva/disattiva plugins dal marketplace, visualizza le skills disponibili
+- **Sub-agents** — visualizza e gestisci gli agents specializzati, modifica quelli custom
+
+### Consigli
+
+- Usa il **Context Switcher** per passare rapidamente tra progetti — ogni progetto ha la sua configurazione
+- Il badge **Global/Project** su ogni elemento ti dice da dove proviene la configurazione
+- Clicca sul **path** nella barra del terminale/chat per copiarlo
+- Il pulsante **📂** apre la cartella di una skill/plugin nel Finder`,
+    },
     {
       title: 'MCP Servers',
       content: `I Model Context Protocol (MCP) servers estendono le capacità di Claude Code fornendo accesso a strumenti esterni, API e servizi.
@@ -72,6 +113,46 @@ Con **tmux** abilitato, le sessioni persistono anche chiudendo la dashboard. Puo
     },
   ],
   en: [
+    {
+      title: 'Quick Start',
+      content: `### First launch
+
+1. **Select a project** — use the Context Switcher in the top right to choose from recent projects or select a new one
+2. **Go to Launcher** — click Launcher in the sidebar
+3. **Start Claude Code** — choose between Chat (simple experience) or Terminal (for power users)
+
+### For non-technical users
+
+**Chat** mode is designed for you. Go to **Settings → Terminal → Chat**, then open the Launcher and click "Launch Claude Code". You'll see a familiar interface where you can:
+
+- **Write messages** like in a normal chat
+- **Attach images** by dragging them or with Cmd+V
+- **See responses** formatted in a readable way
+- **Keep conversation history** across sessions
+
+Claude Code has access to your project files, can search the web, send emails, manage your calendar and much more thanks to MCP connectors.
+
+### For developers
+
+**Terminal** mode gives you direct access to Claude Code with:
+
+- **tmux** — enable in Settings for persistent sessions that survive app closure
+- **Cmd+K** — Command Palette for quick navigation between pages and tmux sessions
+- **Session tabs** — switch between active tmux sessions from the top bar
+
+### Managing configuration
+
+- **MCP Servers** — add local MCP servers to extend Claude's capabilities (databases, APIs, filesystem)
+- **Skills & Plugins** — enable/disable marketplace plugins, view available skills
+- **Sub-agents** — view and manage specialized agents, edit custom ones
+
+### Tips
+
+- Use the **Context Switcher** to quickly switch between projects — each project has its own configuration
+- The **Global/Project** badge on each item tells you where the configuration comes from
+- Click on the **path** in the terminal/chat bar to copy it
+- The **📂** button opens a skill/plugin folder in Finder`,
+    },
     {
       title: 'MCP Servers',
       content: `Model Context Protocol (MCP) servers extend Claude Code's capabilities by providing access to external tools, APIs and services.
@@ -154,7 +235,9 @@ export function DocsPage() {
         {sections.map((section, i) => (
           <section key={i}>
             <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line">{section.content}</div>
+            <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none [&_p]:my-2 [&_ul]:my-1 [&_li]:my-0.5 [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
+              <ReactMarkdown>{section.content}</ReactMarkdown>
+            </div>
           </section>
         ))}
       </div>

@@ -10,10 +10,10 @@ const mainNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
   { id: 'subagents', labelKey: 'nav.subagents', icon: '🤖' },
   { id: 'launcher', labelKey: 'nav.launcher', icon: '🚀' },
   { id: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
-  { id: 'docs', labelKey: 'nav.docs', icon: '📖' },
 ]
 
 const bottomNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
+  { id: 'docs', labelKey: 'nav.docs', icon: '📖' },
   { id: 'credits', labelKey: 'nav.credits', icon: '💜' },
 ]
 

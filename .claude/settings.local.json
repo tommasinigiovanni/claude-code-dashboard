@@ -28,7 +28,8 @@
       "Bash(claude --print --output-format stream-json --input-format stream-json)",
       "Bash(claude --print --output-format stream-json --verbose)",
       "Bash(timeout 15 claude --print --output-format stream-json --input-format stream-json --verbose)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

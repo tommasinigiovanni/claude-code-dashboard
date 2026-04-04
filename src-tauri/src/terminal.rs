@@ -191,7 +191,15 @@ pub async fn terminal_spawn(
                 if exists {
                     format!("tmux attach-session -t {}\n", sess_name)
                 } else {
-                    format!("tmux new-session -s {} 'claude'\n", sess_name)
+                    // Create session with claude on top, shell on bottom
+                    format!(
+                        "tmux new-session -d -s {sess} -x 200 -y 50 'claude' && \
+                         tmux split-window -t {sess} -v -p 30 && \
+                         tmux select-pane -t {sess}:0.0 && \
+                         tmux set -t {sess} mouse on && \
+                         tmux attach-session -t {sess}\n",
+                        sess = sess_name
+                    )
                 }
             } else {
                 "claude\n".to_string()

@@ -2,6 +2,7 @@ mod chat;
 mod config;
 mod dialog;
 mod launcher;
+mod telegram;
 mod terminal;
 mod tray;
 
@@ -29,6 +30,9 @@ pub fn run() {
             launcher::open_folder,
             launcher::check_claude_installed,
             launcher::launch_claude_code,
+            telegram::telegram_start_bot,
+            telegram::telegram_stop_bot,
+            telegram::telegram_bot_status,
             terminal::terminal_spawn,
             terminal::terminal_write,
             terminal::terminal_resize,
