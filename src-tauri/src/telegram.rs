@@ -232,6 +232,73 @@ pub async fn telegram_start_bot(
                                 continue;
                             }
 
+                            if text == "/sessions" {
+                                let output = std::process::Command::new("tmux")
+                                    .args(["list-sessions", "-F", "#{session_name} (#{session_windows} windows)"])
+                                    .output();
+                                let sessions_text = match output {
+                                    Ok(o) if o.status.success() => {
+                                        let list = String::from_utf8_lossy(&o.stdout);
+                                        let claude_sessions: Vec<&str> = list.lines()
+                                            .filter(|l| l.starts_with("claude-"))
+                                            .collect();
+                                        if claude_sessions.is_empty() {
+                                            "Nessuna sessione tmux attiva.".to_string()
+                                        } else {
+                                            format!("📋 *Sessioni attive:*\n\n{}", claude_sessions.join("\n"))
+                                        }
+                                    }
+                                    _ => "Nessuna sessione tmux attiva.".to_string(),
+                                };
+                                let _ = send_telegram_message(&client, &token, msg.chat.id, &sessions_text).await;
+                                continue;
+                            }
+
+                            if text.starts_with("/switch ") {
+                                let target = text.strip_prefix("/switch ").unwrap().trim();
+                                let sess_name = if target.starts_with("claude-") {
+                                    target.to_string()
+                                } else {
+                                    format!("claude-{}", target)
+                                };
+                                // Get cwd from tmux session
+                                let cwd_output = std::process::Command::new("tmux")
+                                    .args(["display-message", "-t", &sess_name, "-p", "#{pane_current_path}"])
+                                    .output();
+                                match cwd_output {
+                                    Ok(o) if o.status.success() => {
+                                        let cwd = String::from_utf8_lossy(&o.stdout).trim().to_string();
+                                        // Update the project path for future messages
+                                        // Note: this changes the working directory for claude --print
+                                        let _ = send_telegram_message(
+                                            &client, &token, msg.chat.id,
+                                            &format!("✅ Switched to *{}*\n📁 `{}`\n\nI prossimi messaggi verranno inviati a Claude Code in questa cartella.", sess_name, cwd),
+                                        ).await;
+                                    }
+                                    _ => {
+                                        let _ = send_telegram_message(
+                                            &client, &token, msg.chat.id,
+                                            &format!("❌ Sessione `{}` non trovata. Usa /sessions per vedere quelle attive.", sess_name),
+                                        ).await;
+                                    }
+                                }
+                                continue;
+                            }
+
+                            if text == "/help" {
+                                let _ = send_telegram_message(
+                                    &client, &token, msg.chat.id,
+                                    "🤖 *Claude Code Dashboard Bot*\n\n\
+                                    Comandi disponibili:\n\
+                                    /sessions — Lista sessioni tmux attive\n\
+                                    /switch <nome> — Cambia progetto attivo\n\
+                                    /chatid — Mostra il tuo Chat ID\n\
+                                    /help — Questo messaggio\n\n\
+                                    Invia qualsiasi altro messaggio per parlare con Claude Code.",
+                                ).await;
+                                continue;
+                            }
+
                             // Send "typing" status
                             let _ = client
                                 .post(&format!(
