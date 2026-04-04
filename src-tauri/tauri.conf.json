@@ -10,7 +10,6 @@
     "beforeBuildCommand": "npm run build"
   },
   "app": {
-    "title": "Claude Code Dashboard",
     "windows": [
       {
         "title": "Claude Code Dashboard",

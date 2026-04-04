@@ -4,14 +4,14 @@
 
 ---
 
-## 1. Struttura `claude.json`
+## 1. Struttura `settings.json`
 
 Claude Code utilizza file di configurazione JSON in due posizioni:
 
 | Scope | Path |
 |---|---|
-| Global | `~/.claude/claude.json` |
-| Project | `{project_root}/.claude/claude.json` |
+| Global | `~/.claude/settings.json` |
+| Project | `{project_root}/.claude/settings.local.json` (priorità) oppure `settings.json` |
 
 ### Struttura base del file
 

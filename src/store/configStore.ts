@@ -1,0 +1,257 @@
+import { create } from 'zustand'
+import { invoke } from '@tauri-apps/api/core'
+import type {
+  ClaudeConfig,
+  ConfigScope,
+  CloudMcpConnector,
+  DashboardData,
+  InstalledPlugin,
+  LocalAgent,
+  LocalSkill,
+  McpServer,
+  McpServerUI,
+  SkillUI,
+  SubAgent,
+  SubAgentUI,
+} from '@/types/claude'
+
+export type ScopeMode = 'global' | 'project'
+
+interface ConfigState {
+  mode: ScopeMode
+  projectPath: string | null
+  globalConfig: ClaudeConfig | null
+  projectConfig: ClaudeConfig | null
+  isLoading: boolean
+  error: string | null
+
+  // Entità UI derivate
+  mcpServers: McpServerUI[]
+  skills: SkillUI[]
+  subAgents: SubAgentUI[]
+
+  // Cloud, plugins & skills
+  cloudConnectors: CloudMcpConnector[]
+  installedPlugins: InstalledPlugin[]
+  localSkills: LocalSkill[]
+  localAgents: LocalAgent[]
+  recentProjects: string[]
+
+  // Scope actions
+  switchToGlobal: () => void
+  switchToProject: (path: string) => void
+  loadConfigs: () => Promise<void>
+
+  // MCP actions
+  addMcp: (id: string, server: McpServer, scope: ConfigScope) => Promise<void>
+  updateMcp: (id: string, server: McpServer, scope: ConfigScope) => Promise<void>
+  removeMcp: (id: string, scope: ConfigScope) => Promise<void>
+
+  // Sub-agent actions
+  addSubAgent: (id: string, agent: SubAgent, scope: ConfigScope) => Promise<void>
+  updateSubAgent: (id: string, agent: SubAgent, scope: ConfigScope) => Promise<void>
+  removeSubAgent: (id: string, scope: ConfigScope) => Promise<void>
+}
+
+function mergeConfigs(
+  globalConfig: ClaudeConfig | null,
+  projectConfig: ClaudeConfig | null,
+  mode: ScopeMode
+): { mcpServers: McpServerUI[]; skills: SkillUI[]; subAgents: SubAgentUI[] } {
+  const mcpMap = new Map<string, McpServerUI>()
+  const skillMap = new Map<string, SkillUI>()
+  const agentMap = new Map<string, SubAgentUI>()
+
+  if (globalConfig?.mcpServers) {
+    for (const [id, server] of Object.entries(globalConfig.mcpServers)) {
+      mcpMap.set(id, { ...server, id, enabled: true, scope: 'global' })
+    }
+  }
+
+  if (mode === 'project' && projectConfig?.mcpServers) {
+    for (const [id, server] of Object.entries(projectConfig.mcpServers)) {
+      mcpMap.set(id, { ...server, id, enabled: true, scope: 'project' })
+    }
+  }
+
+  if (globalConfig?.skills) {
+    for (const skill of globalConfig.skills) {
+      skillMap.set(skill.path, { ...skill, scope: 'global' })
+    }
+  }
+
+  if (mode === 'project' && projectConfig?.skills) {
+    for (const skill of projectConfig.skills) {
+      skillMap.set(skill.path, { ...skill, scope: 'project' })
+    }
+  }
+
+  if (globalConfig?.agents) {
+    for (const [id, agent] of Object.entries(globalConfig.agents)) {
+      agentMap.set(id, { ...agent, id, scope: 'global' })
+    }
+  }
+
+  if (mode === 'project' && projectConfig?.agents) {
+    for (const [id, agent] of Object.entries(projectConfig.agents)) {
+      agentMap.set(id, { ...agent, id, scope: 'project' })
+    }
+  }
+
+  return {
+    mcpServers: Array.from(mcpMap.values()),
+    skills: Array.from(skillMap.values()),
+    subAgents: Array.from(agentMap.values()),
+  }
+}
+
+function getConfigForScope(state: ConfigState, scope: ConfigScope): ClaudeConfig {
+  if (scope === 'global') {
+    return state.globalConfig ?? {}
+  }
+  return state.projectConfig ?? {}
+}
+
+function getWriteArgs(state: ConfigState, scope: ConfigScope, config: ClaudeConfig) {
+  return {
+    scope,
+    ...(scope === 'project' ? { projectPath: state.projectPath } : {}),
+    config,
+  }
+}
+
+export const useConfigStore = create<ConfigState>((set, get) => ({
+  mode: 'global',
+  projectPath: null,
+  globalConfig: null,
+  projectConfig: null,
+  isLoading: false,
+  error: null,
+  mcpServers: [],
+  skills: [],
+  subAgents: [],
+  cloudConnectors: [],
+  installedPlugins: [],
+  localSkills: [],
+  localAgents: [],
+  recentProjects: [],
+
+  switchToGlobal: () => {
+    set({ mode: 'global', projectPath: null, projectConfig: null })
+    get().loadConfigs()
+  },
+
+  switchToProject: (path: string) => {
+    set({ mode: 'project', projectPath: path })
+    get().loadConfigs()
+  },
+
+  loadConfigs: async () => {
+    const { mode, projectPath } = get()
+    set({ isLoading: true, error: null })
+
+    try {
+      // Load full dashboard data (global config + cloud connectors + plugins)
+      const dashboardData = await invoke<DashboardData>('read_dashboard_data')
+
+      const globalConfig = dashboardData.config
+
+      let projectConfig: ClaudeConfig | null = null
+      if (mode === 'project' && projectPath) {
+        projectConfig = await invoke<ClaudeConfig>('read_config', {
+          scope: 'project',
+          projectPath,
+        })
+      }
+
+      const merged = mergeConfigs(globalConfig, projectConfig, mode)
+
+      // Load project-local skills if in project mode
+      let allLocalSkills = dashboardData.localSkills
+      if (mode === 'project' && projectPath) {
+        try {
+          const [projectSkills] = await invoke<[LocalSkill[], LocalSkill[]]>(
+            'read_project_extras',
+            { projectPath }
+          )
+          // Add project skills with "project" as plugin label
+          allLocalSkills = [
+            ...allLocalSkills,
+            ...projectSkills.map((s) => ({ ...s, plugin: 'project' })),
+          ]
+        } catch {
+          // Ignore errors reading project extras
+        }
+      }
+
+      set({
+        globalConfig,
+        projectConfig,
+        ...merged,
+        cloudConnectors: dashboardData.cloudConnectors,
+        installedPlugins: dashboardData.installedPlugins,
+        localSkills: allLocalSkills,
+        localAgents: dashboardData.localAgents,
+        recentProjects: dashboardData.recentProjects,
+        isLoading: false,
+      })
+    } catch (e) {
+      set({
+        error: e instanceof Error ? e.message : String(e),
+        isLoading: false,
+      })
+    }
+  },
+
+  addMcp: async (id, server, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    config.mcpServers = { ...config.mcpServers, [id]: server }
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+
+  updateMcp: async (id, server, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    config.mcpServers = { ...config.mcpServers, [id]: server }
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+
+  removeMcp: async (id, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    const servers = { ...config.mcpServers }
+    delete servers[id]
+    config.mcpServers = servers
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+
+  addSubAgent: async (id, agent, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    config.agents = { ...config.agents, [id]: agent }
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+
+  updateSubAgent: async (id, agent, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    config.agents = { ...config.agents, [id]: agent }
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+
+  removeSubAgent: async (id, scope) => {
+    const state = get()
+    const config = { ...getConfigForScope(state, scope) }
+    const agents = { ...config.agents }
+    delete agents[id]
+    config.agents = agents
+    await invoke('write_config', getWriteArgs(state, scope, config))
+    await get().loadConfigs()
+  },
+}))
