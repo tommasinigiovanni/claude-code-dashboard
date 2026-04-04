@@ -1,73 +1,111 @@
-# React + TypeScript + Vite
+# Claude Code Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Tauri](https://img.shields.io/badge/Tauri%202-Ready-FFC131?logo=tauri&logoColor=white)](https://tauri.app/)
+[![Made with AI](https://img.shields.io/badge/Made%20with-Claude%20Code%20%E2%9D%A4%EF%B8%8F-ff69b4)](https://claude.ai/code)
+[![Giovanni Tommasini](https://img.shields.io/badge/Giovanni%20Tommasini-CTO%20%26%20Developer-blue)](https://giovannitommasini.it/)
 
-Currently, two official plugins are available:
+**Claude Code Dashboard** is a desktop GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations. Built for both developers and non-technical users.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+### Core Dashboard
+- **MCP Manager** - View cloud connectors (claude.ai) and manage local MCP servers (CRUD)
+- **Skills & Plugins** - Browse installed plugins with enable/disable toggle, view skills from plugins, custom skills, and project-local skills
+- **Sub-agents** - View plugin agents, edit custom user agents (.md files), manage config-based agents
+- **Context Switcher** - Switch between Global and Project scope with recent projects from Claude session history
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Launcher & Terminal
+- **Chat Mode** - Chat-like interface for non-technical users with Markdown rendering, image upload, and persistent history
+- **Embedded Terminal** - Full xterm.js terminal with tmux support for persistent sessions
+- **tmux Split Panes** - Claude Code on top, shell on bottom, with visual separator and mouse resize
+- **External Terminals** - Support for Terminal, iTerm2, Warp, Alacritty, or custom
+- **Permission Approval** - PTY-based chat forwards Claude's permission requests as Approve/Reject buttons
 
-## Expanding the ESLint configuration
+### Mobile Control
+- **Telegram Bot** - Control Claude Code from your phone with inline keyboard buttons
+- **Session Memory** - Telegram conversations maintain context across messages
+- **Session Switching** - `/sessions`, `/switch`, `/new` commands with tappable buttons
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Extra
+- **Cmd+K Command Palette** - Quick navigation and tmux session switching
+- **i18n** - Full Italian/English localization
+- **System Tray** - Background operation with tray icon
+- **Dark/Light/System theme**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Stack tecnologico
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Layer | Technology |
+|-------|-----------|
+| Desktop Framework | **Tauri 2** (Rust + WebView) |
+| Frontend | **React 18 + TypeScript** |
+| UI Components | **shadcn/ui** (base-ui) |
+| Styling | **Tailwind CSS v4** |
+| State Management | **Zustand** |
+| Terminal | **xterm.js + portable-pty** |
+| Build | **Vite** |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Quick start
+
+```bash
+# Prerequisites
+# - Rust (rustup)
+# - Node.js >= 18
+# - Claude Code installed (npm install -g @anthropic-ai/claude-code)
+
+# Clone
+git clone https://github.com/tommasinigiovanni/ClaudeCodeDashboard.git
+cd ClaudeCodeDashboard
+
+# Install dependencies
+npm install
+
+# Dev mode
+npm run tauri dev
+
+# Production build
+npm run tauri build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Configuration files
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| File | Description |
+|------|-----------|
+| `~/.claude/settings.json` | Global configuration |
+| `project/.claude/settings.local.json` | Project configuration |
+| `~/.claude/agents/*.md` | Custom agents |
+| `~/.claude/skills/*/SKILL.md` | Custom skills |
+| `~/.claude/commands/*.md` | Custom slash commands |
+| `~/.claude/plugins/` | Installed plugins |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Telegram Bot Setup
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) on Telegram
+2. Copy the bot token
+3. Go to **Settings** in the dashboard, paste the token
+4. Click **Start Telegram bot**
+5. Send `/chatid` to your bot to get your Chat ID (optional, for security)
+6. Start chatting with Claude Code from your phone!
+
+Commands: `/menu`, `/sessions`, `/switch <project>`, `/new`, `/help`
+
+## Documentation
+
+Full documentation is available in the app under the **Documentation** page, in both Italian and English.
+
+| File | Content |
+|------|---------|
+| [`PRD.md`](PRD.md) | Product requirements |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Technical architecture |
+| [`DATA_MODEL.md`](DATA_MODEL.md) | Data model and config structure |
+| [`TASKS.md`](TASKS.md) | Development task breakdown |
+
+---
+
+## License
+
+MIT - Use, modify and share freely!
+
+---
+
+Made with love by [Giovanni Tommasini](https://giovannitommasini.it/) in pair programming with [Claude Code](https://claude.ai/code) (Opus 4.6)

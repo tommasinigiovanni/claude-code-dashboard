@@ -332,7 +332,7 @@ export function SettingsPage() {
       {/* Info */}
       <div className="rounded-lg border border-border p-4">
         <p className="text-sm font-medium mb-2">Claude Code Dashboard</p>
-        <p className="text-xs text-muted-foreground">v0.1.0</p>
+        <p className="text-xs text-muted-foreground">v0.5.0</p>
         <p className="text-xs text-muted-foreground">
           {locale === 'it' ? 'Configurazione' : 'Configuration'}: ~/.claude/settings.json
         </p>
