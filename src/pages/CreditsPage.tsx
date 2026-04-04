@@ -10,7 +10,7 @@ export function CreditsPage() {
 
       <div className="rounded-lg border border-border p-6 mb-6">
         <h3 className="text-lg font-semibold mb-1">Claude Code Dashboard</h3>
-        <p className="text-sm text-muted-foreground mb-4">v0.5.0</p>
+        <p className="text-sm text-muted-foreground mb-4">v0.6.0</p>
         <p className="text-sm text-muted-foreground">
           {isIt
             ? "Una GUI desktop per gestire l'ambiente di Claude Code: MCP servers, Skills, Sub-agents e configurazioni di progetto."

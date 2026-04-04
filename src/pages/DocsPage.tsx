@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useI18n } from '@/i18n/useI18n'
 import { Separator } from '@/components/ui/separator'
 
@@ -404,7 +405,7 @@ export function DocsPage() {
               <h3 className="text-xl font-bold">{section.title}</h3>
             </div>
             <div className="pl-11 prose prose-invert prose-sm max-w-none [&_table]:w-full [&_th]:text-left [&_th]:py-2 [&_th]:px-3 [&_th]:bg-muted/50 [&_th]:font-medium [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider [&_td]:py-2 [&_td]:px-3 [&_td]:border-b [&_td]:border-border [&_tr]:border-b [&_tr]:border-border [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_blockquote]:border-l-primary [&_blockquote]:bg-primary/5 [&_blockquote]:py-2 [&_blockquote]:px-4 [&_blockquote]:rounded-r-lg [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5 [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-base [&_table]:my-3">
-              <ReactMarkdown>{section.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{section.content}</ReactMarkdown>
             </div>
             {i < sections.length - 1 && <Separator className="mt-8" />}
           </section>

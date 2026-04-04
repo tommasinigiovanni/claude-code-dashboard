@@ -16,6 +16,7 @@ import { CreditsPage } from '@/pages/CreditsPage'
 import { ProfilesPage } from '@/pages/ProfilesPage'
 import { LogsPage } from '@/pages/LogsPage'
 import { HealthPage } from '@/pages/HealthPage'
+import { ChangelogPage } from '@/pages/ChangelogPage'
 import { CommandPalette } from '@/components/CommandPalette'
 import { useI18n } from '@/i18n/useI18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -65,6 +66,8 @@ function MainContent() {
       return <HealthPage />
     case 'docs':
       return <DocsPage />
+    case 'changelog':
+      return <ChangelogPage />
     case 'credits':
       return <CreditsPage />
   }

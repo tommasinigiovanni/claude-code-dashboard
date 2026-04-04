@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useI18n } from '@/i18n/useI18n'
@@ -298,7 +299,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               ) : (
                 <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                 </div>
               )}
             </div>
@@ -310,7 +311,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
           <div className="flex justify-start">
             <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-card border border-border rounded-bl-sm">
               <div className="text-sm prose prose-invert prose-sm max-w-none">
-                <ReactMarkdown>{currentResponse}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentResponse}</ReactMarkdown>
               </div>
             </div>
           </div>

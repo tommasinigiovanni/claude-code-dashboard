@@ -15,6 +15,7 @@ import {
   SettingsIcon,
   BookOpenIcon,
   HeartIcon,
+  ClockIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
 } from 'lucide-react'
@@ -44,6 +45,7 @@ const navSections: NavSection[] = [
 
 const bottomNavItems: NavItem[] = [
   { id: 'docs', labelKey: 'nav.docs', icon: <BookOpenIcon className="size-4" /> },
+  { id: 'changelog', labelKey: 'nav.changelog' as TranslationKey, icon: <ClockIcon className="size-4" /> },
   { id: 'credits', labelKey: 'nav.credits', icon: <HeartIcon className="size-4" /> },
 ]
 

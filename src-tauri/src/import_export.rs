@@ -96,7 +96,7 @@ pub async fn export_config() -> Result<String, String> {
     };
 
     let bundle = ExportBundle {
-        version: "0.5.0".to_string(),
+        version: "0.6.0".to_string(),
         global_settings,
         agents,
         skills,

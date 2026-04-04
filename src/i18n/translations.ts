@@ -10,6 +10,7 @@ const translations = {
   'nav.profiles': { it: 'Profili', en: 'Profiles' },
   'nav.logs': { it: 'Log Sessioni', en: 'Session Logs' },
   'nav.health': { it: 'Health Check', en: 'Health Check' },
+  'nav.changelog': { it: 'Changelog', en: 'Changelog' },
   'nav.docs': { it: 'Documentazione', en: 'Documentation' },
   'nav.credits': { it: 'Credits', en: 'Credits' },
 
