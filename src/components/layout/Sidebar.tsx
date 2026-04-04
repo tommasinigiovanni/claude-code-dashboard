@@ -1,23 +1,38 @@
+import { type ReactNode } from 'react'
 import { useUiStore, type Page } from '@/store/uiStore'
 import { useI18n } from '@/i18n/useI18n'
 import type { TranslationKey } from '@/i18n/translations'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
+import {
+  ServerIcon,
+  ZapIcon,
+  BotIcon,
+  RocketIcon,
+  LayersIcon,
+  ScrollTextIcon,
+  ActivityIcon,
+  SettingsIcon,
+  BookOpenIcon,
+  HeartIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+} from 'lucide-react'
 
-const mainNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
-  { id: 'mcp', labelKey: 'nav.mcp', icon: '🔌' },
-  { id: 'skills', labelKey: 'nav.skills', icon: '⚡' },
-  { id: 'subagents', labelKey: 'nav.subagents', icon: '🤖' },
-  { id: 'launcher', labelKey: 'nav.launcher', icon: '🚀' },
-  { id: 'profiles', labelKey: 'nav.profiles', icon: '📋' },
-  { id: 'logs', labelKey: 'nav.logs', icon: '📜' },
-  { id: 'health', labelKey: 'nav.health', icon: '🏥' },
-  { id: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
+const mainNavItems: { id: Page; labelKey: TranslationKey; icon: ReactNode }[] = [
+  { id: 'mcp', labelKey: 'nav.mcp', icon: <ServerIcon className="size-4" /> },
+  { id: 'skills', labelKey: 'nav.skills', icon: <ZapIcon className="size-4" /> },
+  { id: 'subagents', labelKey: 'nav.subagents', icon: <BotIcon className="size-4" /> },
+  { id: 'launcher', labelKey: 'nav.launcher', icon: <RocketIcon className="size-4" /> },
+  { id: 'profiles', labelKey: 'nav.profiles', icon: <LayersIcon className="size-4" /> },
+  { id: 'logs', labelKey: 'nav.logs', icon: <ScrollTextIcon className="size-4" /> },
+  { id: 'health', labelKey: 'nav.health', icon: <ActivityIcon className="size-4" /> },
+  { id: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon className="size-4" /> },
 ]
 
-const bottomNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
-  { id: 'docs', labelKey: 'nav.docs', icon: '📖' },
-  { id: 'credits', labelKey: 'nav.credits', icon: '💜' },
+const bottomNavItems: { id: Page; labelKey: TranslationKey; icon: ReactNode }[] = [
+  { id: 'docs', labelKey: 'nav.docs', icon: <BookOpenIcon className="size-4" /> },
+  { id: 'credits', labelKey: 'nav.credits', icon: <HeartIcon className="size-4" /> },
 ]
 
 interface SidebarProps {
@@ -29,7 +44,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { activePage, setActivePage } = useUiStore()
   const { t } = useI18n()
 
-  const renderItem = (item: { id: Page; labelKey: TranslationKey; icon: string }) => (
+  const renderItem = (item: { id: Page; labelKey: TranslationKey; icon: ReactNode }) => (
     <button
       key={item.id}
       onClick={() => setActivePage(item.id)}
@@ -42,7 +57,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
       )}
     >
-      <span className="text-base">{item.icon}</span>
+      {item.icon}
       {!collapsed && t(item.labelKey)}
     </button>
   )
@@ -52,15 +67,20 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       'flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-200',
       collapsed ? 'w-14' : 'w-56'
     )}>
-      <div className="flex items-center justify-between px-3 py-4">
+      <div className={cn('flex items-center px-3 py-4', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
-          <h1 className="text-sm font-semibold tracking-tight px-1">Claude Code Dashboard</h1>
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
+              <span className="text-xs font-bold text-primary">CC</span>
+            </div>
+            <span className="text-sm font-semibold tracking-tight">Dashboard</span>
+          </div>
         )}
         <button
           onClick={onToggle}
           className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 rounded"
         >
-          {collapsed ? '▶' : '◀'}
+          {collapsed ? <PanelLeftOpenIcon className="size-4" /> : <PanelLeftCloseIcon className="size-4" />}
         </button>
       </div>
       <Separator />

@@ -256,6 +256,21 @@ pub async fn telegram_start_bot(
         .unwrap_or("unknown")
         .to_string();
 
+    // Register bot menu commands
+    let _ = client
+        .post(&format!("https://api.telegram.org/bot{}/setMyCommands", bot_token))
+        .json(&serde_json::json!({
+            "commands": [
+                {"command": "menu", "description": "Main menu with buttons"},
+                {"command": "sessions", "description": "Active tmux sessions"},
+                {"command": "new", "description": "Start new conversation"},
+                {"command": "help", "description": "Show available commands"},
+                {"command": "chatid", "description": "Show your Chat ID"}
+            ]
+        }))
+        .send()
+        .await;
+
     BOT_RUNNING.store(true, Ordering::Relaxed);
 
     let _ = app.emit(
