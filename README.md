@@ -1,6 +1,6 @@
 # Claude Code Dashboard
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tauri](https://img.shields.io/badge/Tauri%202-Ready-FFC131?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Made with AI](https://img.shields.io/badge/Made%20with-Claude%20Code%20%E2%9D%A4%EF%B8%8F-ff69b4)](https://claude.ai/code)
 [![Giovanni Tommasini](https://img.shields.io/badge/Giovanni%20Tommasini-CTO%20%26%20Developer-blue)](https://giovannitommasini.it/)
@@ -119,7 +119,7 @@ Full documentation is available in the app under the **Documentation** page, in 
 
 ## License
 
-MIT - Use, modify and share freely!
+Apache 2.0 - Use, modify and share freely!
 
 ---
 

@@ -1,243 +1,412 @@
 import ReactMarkdown from 'react-markdown'
 import { useI18n } from '@/i18n/useI18n'
+import { Separator } from '@/components/ui/separator'
 
 const docs = {
-  it: [
-    {
-      title: 'Guida rapida',
-      content: `### Primo avvio
+  it: {
+    title: 'Documentazione',
+    sections: [
+      {
+        icon: '🚀',
+        title: 'Guida rapida',
+        content: `### Primo avvio
 
-1. **Seleziona un progetto** — usa il Context Switcher in alto a destra per scegliere un progetto dai recenti o selezionarne uno nuovo
-2. **Vai al Launcher** — clicca su Launcher nella sidebar
-3. **Avvia Claude Code** — scegli tra Chat (per un'esperienza semplice) o Terminale (per utenti esperti)
+Al primo avvio vedrai un **wizard di benvenuto** che ti guiderà nella configurazione. Se l'hai già completato, ecco i passi essenziali:
+
+| Passo | Azione |
+|-------|--------|
+| 1 | **Seleziona un progetto** dal Context Switcher (in alto a destra) |
+| 2 | Vai al **Launcher** nella sidebar |
+| 3 | Clicca **Avvia Claude Code** |
 
 ### Per utenti non tecnici
 
-La modalità **Chat** è pensata per te. Vai in **Impostazioni → Terminale → Chat**, poi apri il Launcher e clicca "Avvia Claude Code". Vedrai un'interfaccia familiare dove puoi:
+La modalità **Chat** è pensata per te. Vai in **Impostazioni → Terminale → Chat**, poi:
 
-- **Scrivere messaggi** come in una chat normale
-- **Allegare immagini** trascinandole o con Cmd+V
-- **Vedere le risposte** formattate in modo leggibile
-- **Mantenere la cronologia** delle conversazioni
+- Scrivi messaggi come in una **chat normale**
+- **Allega immagini** trascinandole o con Cmd+V
+- Quando Claude vuole modificare qualcosa, vedrai un pulsante **Approva/Rifiuta**
+- La **cronologia** si mantiene tra le sessioni
 
-Claude Code ha accesso ai file del progetto, può cercare informazioni online, inviare email, gestire calendario e molto altro grazie agli MCP connectors.
+> Claude Code ha accesso ai file del progetto, può cercare online, inviare email, gestire calendario e molto altro grazie agli MCP connectors.
 
 ### Per sviluppatori
 
-La modalità **Terminale** ti dà accesso diretto a Claude Code con:
+La modalità **Terminale** ti dà accesso diretto con:
 
-- **tmux** — abilita nelle Impostazioni per sessioni persistenti che sopravvivono alla chiusura dell'app
-- **Cmd+K** — Command Palette per navigare rapidamente tra pagine e sessioni tmux
-- **Tab sessioni** — switcha tra più sessioni tmux attive dalla barra in alto
+- **tmux** — abilita nelle Impostazioni per sessioni persistenti (Claude sopra, shell sotto)
+- **Cmd+K** — Command Palette per navigare e switchare sessioni
+- **Tab sessioni** — switcha tra sessioni tmux dalla barra in alto`,
+      },
+      {
+        icon: '🔌',
+        title: 'MCP Servers',
+        content: `I **Model Context Protocol** (MCP) servers estendono le capacità di Claude Code dandogli accesso a strumenti esterni.
 
-### Gestire la configurazione
+### Cloud Connectors
+Gestiti da **claude.ai** — Gmail, Slack, Notion, Google Calendar, etc. La dashboard li mostra con stato di connessione ma non possono essere configurati localmente.
 
-- **MCP Servers** — aggiungi server MCP locali per estendere le capacità di Claude (database, API, filesystem)
-- **Skills & Plugins** — attiva/disattiva plugins dal marketplace, visualizza le skills disponibili
-- **Sub-agents** — visualizza e gestisci gli agents specializzati, modifica quelli custom
+### MCP Locali
+Configurati nel tuo \`settings.json\`. Dalla dashboard puoi:
 
-### Consigli
+| Azione | Come |
+|--------|------|
+| **Aggiungere** | Pulsante "+ Aggiungi MCP" → form con nome, comando, argomenti, env |
+| **Modificare** | Menu ⋯ → Modifica |
+| **Eliminare** | Menu ⋯ → Elimina |
 
-- Usa il **Context Switcher** per passare rapidamente tra progetti — ogni progetto ha la sua configurazione
-- Il badge **Global/Project** su ogni elemento ti dice da dove proviene la configurazione
-- Clicca sul **path** nella barra del terminale/chat per copiarlo
-- Il pulsante **📂** apre la cartella di una skill/plugin nel Finder`,
-    },
-    {
-      title: 'MCP Servers',
-      content: `I Model Context Protocol (MCP) servers estendono le capacità di Claude Code fornendo accesso a strumenti esterni, API e servizi.
+Ogni MCP mostra un badge **Global** o **Project** per indicare la provenienza.`,
+      },
+      {
+        icon: '⚡',
+        title: 'Skills & Plugins',
+        content: `### Plugins
+I plugins sono pacchetti dal marketplace che aggiungono funzionalità. Puoi **attivarli/disattivarli** con il toggle.
 
-**Cloud Connectors** — gestiti da claude.ai (Gmail, Slack, Notion, etc.). Visibili ma non configurabili dalla dashboard.
+### Skills
+Le skills sono istruzioni specializzate per task specifici. Provengono da 4 fonti:
 
-**MCP Locali** — configurati nel tuo settings.json. Puoi aggiungerli, modificarli e rimuoverli dalla dashboard.`,
-    },
-    {
-      title: 'Skills & Plugins',
-      content: `Le **Skills** sono istruzioni specializzate che guidano Claude Code per task specifici (TDD, debugging, code review, etc.).
+| Fonte | Path | Tipo |
+|-------|------|------|
+| Plugin installati | \`~/.claude/plugins/\` | Plugin |
+| Skills custom | \`~/.claude/skills/*/SKILL.md\` | Custom |
+| Comandi custom | \`~/.claude/commands/*.md\` | Command |
+| Skills di progetto | \`project/.claude/skills/\` | Project |
 
-I **Plugins** sono pacchetti dal marketplace che aggiungono skills, agents e funzionalità. Puoi attivarli/disattivarli con il toggle.
+Il pulsante **📂** apre la cartella della skill nel Finder.`,
+      },
+      {
+        icon: '🤖',
+        title: 'Sub-agents',
+        content: `I sub-agents sono agenti specializzati che Claude può delegare per task complessi.
 
-**Fonti delle skills:**
-- Plugin installati (~/.claude/plugins/)
-- Skills custom (~/.claude/skills/*/SKILL.md)
-- Comandi custom (~/.claude/commands/*.md)
-- Skills di progetto (project/.claude/skills/)`,
-    },
-    {
-      title: 'Sub-agents',
-      content: `I Sub-agents sono agenti specializzati che Claude Code può delegare per task complessi.
+### User Agents (editabili)
+File \`.md\` in \`~/.claude/agents/\`. Dalla dashboard puoi **modificare** il contenuto del file e **eliminare** agents. Supporta sottocartelle per organizzazione.
 
-**User Agents** — file .md in ~/.claude/agents/. Editabili e eliminabili dalla dashboard.
+### Plugin Agents (read-only)
+Forniti dai plugin installati — code-reviewer, knowledge-graph-guide, etc.
 
-**Plugin Agents** — forniti dai plugin installati. Read-only.
+### Agents da Configurazione
+Definiti nel \`settings.json\` → sezione \`agents\`. CRUD completo dalla dashboard.`,
+      },
+      {
+        icon: '🔄',
+        title: 'Context Switcher',
+        content: `Il selettore in alto a destra gestisce il contesto attivo:
 
-**Agents da Configurazione** — definiti nel settings.json. CRUD completo dalla dashboard.`,
-    },
-    {
-      title: 'Context Switcher',
-      content: `Il selettore in alto a destra permette di passare tra:
+| Modalità | File | Descrizione |
+|----------|------|-------------|
+| **Globale** | \`~/.claude/settings.json\` | Configurazione condivisa |
+| **Progetto** | \`project/.claude/settings.local.json\` | Override per progetto |
 
-**Globale** — ~/.claude/settings.json
-**Progetto** — project/.claude/settings.local.json
+### Progetti recenti
+La lista viene letta dalla **history delle sessioni** Claude Code (\`~/.claude/projects/\`). Ogni progetto mostra le ultime 2 parti del path. Hover per il path completo, click per switchare.
 
-I **progetti recenti** vengono letti dalla history delle sessioni Claude Code. In modalità Project, la dashboard mostra il merge delle configurazioni con badge per indicare la provenienza.`,
-    },
-    {
-      title: 'Launcher & Terminale',
-      content: `Avvia Claude Code scegliendo tra:
+In modalità **Project**, la dashboard mostra il **merge** delle configurazioni con badge per indicare la provenienza di ogni elemento.`,
+      },
+      {
+        icon: '💬',
+        title: 'Chat & Terminale',
+        content: `### Modalità Chat
+Interfaccia conversazionale basata su PTY interattivo:
 
-**Chat** — interfaccia chat per utenti non tecnici con rendering Markdown, upload immagini e history persistente.
+- Messaggi formattati in **Markdown** con bolle user/assistant
+- **Upload immagini** — drag & drop, Cmd+V, o pulsante 📎
+- **Approvazione permessi** — quando Claude vuole editare/scrivere, compare un pulsante Approva/Rifiuta
+- **Cronologia persistente** — salvata per progetto in localStorage
 
-**Terminale integrato** — xterm.js con supporto tmux per sessioni persistenti.
+### Terminale Integrato
+Terminale xterm.js completo con:
 
-**Terminale esterno** — Terminal, iTerm2, Warp, Alacritty o custom.
+- **tmux split** — Claude Code sopra (70%), shell sotto (30%)
+- **Mouse resize** — trascina il bordo tra i pannelli
+- **Tab sessioni** — switcha tra sessioni tmux attive
+- Temi diversi per i due pannelli (viola per il bordo, verde su nero per la shell)
 
-Con **tmux** abilitato, le sessioni persistono anche chiudendo la dashboard. Puoi switchare tra sessioni con le tab o con Cmd+K.`,
-    },
-    {
-      title: 'Scorciatoie',
-      content: `**Cmd+K** — Command Palette per navigazione rapida e switch sessioni tmux.
+### Terminale Esterno
+Supporto per: Terminal, iTerm2, Warp, Alacritty, o percorso custom.`,
+      },
+      {
+        icon: '📱',
+        title: 'Telegram Bot',
+        content: `Controlla Claude Code dal telefono via Telegram.
 
-**Click sul path** — copia il percorso negli appunti.
+### Setup
+1. Crea un bot con **@BotFather** → copia il token
+2. Incolla nei **Settings** → sezione Telegram
+3. Clicca **Avvia bot**
+4. Manda \`/chatid\` al bot per ottenere il tuo ID (opzionale per sicurezza)
 
-**📂 su skill/plugin** — apre la cartella nel Finder.`,
-    },
-    {
-      title: 'File di configurazione',
-      content: `\`~/.claude/settings.json\` — Configurazione globale
-\`project/.claude/settings.local.json\` — Configurazione progetto
-\`~/.claude/agents/*.md\` — Agents custom
-\`~/.claude/skills/*/SKILL.md\` — Skills custom
-\`~/.claude/commands/*.md\` — Comandi custom (slash commands)
-\`~/.claude/plugins/\` — Plugins installati`,
-    },
-  ],
-  en: [
-    {
-      title: 'Quick Start',
-      content: `### First launch
+### Comandi
 
-1. **Select a project** — use the Context Switcher in the top right to choose from recent projects or select a new one
-2. **Go to Launcher** — click Launcher in the sidebar
-3. **Start Claude Code** — choose between Chat (simple experience) or Terminal (for power users)
+| Comando | Descrizione |
+|---------|-------------|
+| \`/menu\` | Menu principale con bottoni |
+| \`/sessions\` | Lista sessioni tmux (tappabili) |
+| \`/switch <nome>\` | Cambia progetto attivo |
+| \`/new\` | Nuova conversazione |
+| \`/help\` | Lista comandi |
+
+> I comandi sono anche disponibili dal **menu hamburger** di Telegram (bottone / in basso a sinistra).
+
+Claude **ricorda il contesto** tra messaggi nella stessa conversazione. Usa \`/new\` per ricominciare.`,
+      },
+      {
+        icon: '⌨️',
+        title: 'Scorciatoie',
+        content: `| Scorciatoia | Azione |
+|-------------|--------|
+| **Cmd+K** | Command Palette — cerca pagine e sessioni tmux |
+| **Click sul path** | Copia il percorso negli appunti |
+| **📂 su skill/plugin** | Apre la cartella nel Finder |
+| **Enter** | Invia messaggio nella chat |
+| **Shift+Enter** | Nuova riga nella chat |
+| **Cmd+V** | Incolla immagine nella chat |`,
+      },
+      {
+        icon: '📋',
+        title: 'Profili & Import/Export',
+        content: `### Profili
+Salva la configurazione attuale come **profilo nominato** per riutilizzarla:
+
+- "Modalità Scrittura" — solo MCP per ricerca e docs
+- "Modalità DevOps" — MCP per infra, database, CI/CD
+- "Modalità Presentazione" — configurazione minimale
+
+### Import/Export
+Nella pagina **Settings** puoi:
+
+- **Esportare** tutta la configurazione (settings, agents, skills, commands) come JSON
+- **Importare** un file JSON — merge intelligente che non sovrascrive le configurazioni esistenti`,
+      },
+      {
+        icon: '📁',
+        title: 'File di configurazione',
+        content: `| File | Descrizione |
+|------|-------------|
+| \`~/.claude/settings.json\` | Configurazione globale |
+| \`project/.claude/settings.local.json\` | Configurazione progetto |
+| \`~/.claude/agents/*.md\` | Agents custom (editabili) |
+| \`~/.claude/skills/*/SKILL.md\` | Skills custom |
+| \`~/.claude/commands/*.md\` | Comandi slash custom |
+| \`~/.claude/plugins/\` | Plugins installati |
+| \`~/.claude/projects/\` | History sessioni per progetto |
+| \`~/.claude/dashboard-profiles/\` | Profili salvati |`,
+      },
+    ],
+  },
+  en: {
+    title: 'Documentation',
+    sections: [
+      {
+        icon: '🚀',
+        title: 'Quick Start',
+        content: `### First launch
+
+On first launch you'll see a **welcome wizard** that guides you through setup. If you've already completed it, here are the essential steps:
+
+| Step | Action |
+|------|--------|
+| 1 | **Select a project** from the Context Switcher (top right) |
+| 2 | Go to **Launcher** in the sidebar |
+| 3 | Click **Launch Claude Code** |
 
 ### For non-technical users
 
-**Chat** mode is designed for you. Go to **Settings → Terminal → Chat**, then open the Launcher and click "Launch Claude Code". You'll see a familiar interface where you can:
+**Chat** mode is designed for you. Go to **Settings → Terminal → Chat**, then:
 
-- **Write messages** like in a normal chat
-- **Attach images** by dragging them or with Cmd+V
-- **See responses** formatted in a readable way
-- **Keep conversation history** across sessions
+- Write messages like in a **normal chat**
+- **Attach images** by dragging or with Cmd+V
+- When Claude wants to modify something, you'll see an **Approve/Reject** button
+- **History** persists across sessions
 
-Claude Code has access to your project files, can search the web, send emails, manage your calendar and much more thanks to MCP connectors.
+> Claude Code can access project files, search online, send emails, manage your calendar and much more thanks to MCP connectors.
 
 ### For developers
 
-**Terminal** mode gives you direct access to Claude Code with:
+**Terminal** mode gives you direct access with:
 
-- **tmux** — enable in Settings for persistent sessions that survive app closure
-- **Cmd+K** — Command Palette for quick navigation between pages and tmux sessions
-- **Session tabs** — switch between active tmux sessions from the top bar
+- **tmux** — enable in Settings for persistent sessions (Claude on top, shell below)
+- **Cmd+K** — Command Palette for navigation and session switching
+- **Session tabs** — switch between tmux sessions from the top bar`,
+      },
+      {
+        icon: '🔌',
+        title: 'MCP Servers',
+        content: `**Model Context Protocol** (MCP) servers extend Claude Code's capabilities by providing access to external tools.
 
-### Managing configuration
+### Cloud Connectors
+Managed by **claude.ai** — Gmail, Slack, Notion, Google Calendar, etc. The dashboard shows them with connection status but they cannot be configured locally.
 
-- **MCP Servers** — add local MCP servers to extend Claude's capabilities (databases, APIs, filesystem)
-- **Skills & Plugins** — enable/disable marketplace plugins, view available skills
-- **Sub-agents** — view and manage specialized agents, edit custom ones
+### Local MCP
+Configured in your \`settings.json\`. From the dashboard you can:
 
-### Tips
+| Action | How |
+|--------|-----|
+| **Add** | "+ Add MCP" button → form with name, command, args, env |
+| **Edit** | Menu ⋯ → Edit |
+| **Delete** | Menu ⋯ → Delete |
 
-- Use the **Context Switcher** to quickly switch between projects — each project has its own configuration
-- The **Global/Project** badge on each item tells you where the configuration comes from
-- Click on the **path** in the terminal/chat bar to copy it
-- The **📂** button opens a skill/plugin folder in Finder`,
-    },
-    {
-      title: 'MCP Servers',
-      content: `Model Context Protocol (MCP) servers extend Claude Code's capabilities by providing access to external tools, APIs and services.
+Each MCP shows a **Global** or **Project** badge to indicate its source.`,
+      },
+      {
+        icon: '⚡',
+        title: 'Skills & Plugins',
+        content: `### Plugins
+Plugins are marketplace packages that add features. You can **enable/disable** them with the toggle.
 
-**Cloud Connectors** — managed by claude.ai (Gmail, Slack, Notion, etc.). Visible but not configurable from the dashboard.
+### Skills
+Skills are specialized instructions for specific tasks. They come from 4 sources:
 
-**Local MCP** — configured in your settings.json. You can add, edit and remove them from the dashboard.`,
-    },
-    {
-      title: 'Skills & Plugins',
-      content: `**Skills** are specialized instructions that guide Claude Code for specific tasks (TDD, debugging, code review, etc.).
+| Source | Path | Type |
+|--------|------|------|
+| Installed plugins | \`~/.claude/plugins/\` | Plugin |
+| Custom skills | \`~/.claude/skills/*/SKILL.md\` | Custom |
+| Custom commands | \`~/.claude/commands/*.md\` | Command |
+| Project skills | \`project/.claude/skills/\` | Project |
 
-**Plugins** are marketplace packages that add skills, agents and features. You can enable/disable them with the toggle.
+The **📂** button opens the skill's folder in Finder.`,
+      },
+      {
+        icon: '🤖',
+        title: 'Sub-agents',
+        content: `Sub-agents are specialized agents that Claude can delegate complex tasks to.
 
-**Skill sources:**
-- Installed plugins (~/.claude/plugins/)
-- Custom skills (~/.claude/skills/*/SKILL.md)
-- Custom commands (~/.claude/commands/*.md)
-- Project skills (project/.claude/skills/)`,
-    },
-    {
-      title: 'Sub-agents',
-      content: `Sub-agents are specialized agents that Claude Code can delegate complex tasks to.
+### User Agents (editable)
+\`.md\` files in \`~/.claude/agents/\`. From the dashboard you can **edit** file contents and **delete** agents. Supports subfolders for organization.
 
-**User Agents** — .md files in ~/.claude/agents/. Editable and deletable from the dashboard.
+### Plugin Agents (read-only)
+Provided by installed plugins — code-reviewer, knowledge-graph-guide, etc.
 
-**Plugin Agents** — provided by installed plugins. Read-only.
+### Configuration Agents
+Defined in \`settings.json\` → \`agents\` section. Full CRUD from the dashboard.`,
+      },
+      {
+        icon: '🔄',
+        title: 'Context Switcher',
+        content: `The selector in the top right manages the active context:
 
-**Configuration Agents** — defined in settings.json. Full CRUD from the dashboard.`,
-    },
-    {
-      title: 'Context Switcher',
-      content: `The selector in the top right allows switching between:
+| Mode | File | Description |
+|------|------|-------------|
+| **Global** | \`~/.claude/settings.json\` | Shared configuration |
+| **Project** | \`project/.claude/settings.local.json\` | Per-project override |
 
-**Global** — ~/.claude/settings.json
-**Project** — project/.claude/settings.local.json
+### Recent projects
+The list is read from Claude Code **session history** (\`~/.claude/projects/\`). Each project shows the last 2 path parts. Hover for full path, click to switch.
 
-**Recent projects** are read from Claude Code session history. In Project mode, the dashboard shows merged configurations with badges indicating the source.`,
-    },
-    {
-      title: 'Launcher & Terminal',
-      content: `Launch Claude Code choosing from:
+In **Project** mode, the dashboard shows the **merged** configurations with badges indicating each item's source.`,
+      },
+      {
+        icon: '💬',
+        title: 'Chat & Terminal',
+        content: `### Chat Mode
+Conversational interface based on interactive PTY:
 
-**Chat** — chat interface for non-technical users with Markdown rendering, image upload and persistent history.
+- Messages formatted in **Markdown** with user/assistant bubbles
+- **Image upload** — drag & drop, Cmd+V, or 📎 button
+- **Permission approval** — when Claude wants to edit/write, an Approve/Reject button appears
+- **Persistent history** — saved per project in localStorage
 
-**Embedded terminal** — xterm.js with tmux support for persistent sessions.
+### Embedded Terminal
+Full xterm.js terminal with:
 
-**External terminal** — Terminal, iTerm2, Warp, Alacritty or custom.
+- **tmux split** — Claude Code on top (70%), shell below (30%)
+- **Mouse resize** — drag the border between panels
+- **Session tabs** — switch between active tmux sessions
+- Different themes for the two panels (purple border, green-on-black shell)
 
-With **tmux** enabled, sessions persist even after closing the dashboard. Switch between sessions with tabs or Cmd+K.`,
-    },
-    {
-      title: 'Shortcuts',
-      content: `**Cmd+K** — Command Palette for quick navigation and tmux session switching.
+### External Terminal
+Support for: Terminal, iTerm2, Warp, Alacritty, or custom path.`,
+      },
+      {
+        icon: '📱',
+        title: 'Telegram Bot',
+        content: `Control Claude Code from your phone via Telegram.
 
-**Click on path** — copies the path to clipboard.
+### Setup
+1. Create a bot with **@BotFather** → copy the token
+2. Paste in **Settings** → Telegram section
+3. Click **Start bot**
+4. Send \`/chatid\` to the bot to get your ID (optional for security)
 
-**📂 on skill/plugin** — opens the folder in Finder.`,
-    },
-    {
-      title: 'Configuration files',
-      content: `\`~/.claude/settings.json\` — Global configuration
-\`project/.claude/settings.local.json\` — Project configuration
-\`~/.claude/agents/*.md\` — Custom agents
-\`~/.claude/skills/*/SKILL.md\` — Custom skills
-\`~/.claude/commands/*.md\` — Custom commands (slash commands)
-\`~/.claude/plugins/\` — Installed plugins`,
-    },
-  ],
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| \`/menu\` | Main menu with buttons |
+| \`/sessions\` | Active tmux sessions (tappable) |
+| \`/switch <name>\` | Switch active project |
+| \`/new\` | New conversation |
+| \`/help\` | List commands |
+
+> Commands are also available from Telegram's **menu button** (/ button at bottom left).
+
+Claude **remembers context** between messages in the same conversation. Use \`/new\` to start fresh.`,
+      },
+      {
+        icon: '⌨️',
+        title: 'Shortcuts',
+        content: `| Shortcut | Action |
+|----------|--------|
+| **Cmd+K** | Command Palette — search pages and tmux sessions |
+| **Click on path** | Copy path to clipboard |
+| **📂 on skill/plugin** | Open folder in Finder |
+| **Enter** | Send message in chat |
+| **Shift+Enter** | New line in chat |
+| **Cmd+V** | Paste image in chat |`,
+      },
+      {
+        icon: '📋',
+        title: 'Profiles & Import/Export',
+        content: `### Profiles
+Save your current configuration as a **named profile** for reuse:
+
+- "Writing Mode" — only research and docs MCP
+- "DevOps Mode" — infra, database, CI/CD MCP
+- "Presentation Mode" — minimal configuration
+
+### Import/Export
+In the **Settings** page you can:
+
+- **Export** your entire configuration (settings, agents, skills, commands) as JSON
+- **Import** a JSON file — smart merge that doesn't overwrite existing configs`,
+      },
+      {
+        icon: '📁',
+        title: 'Configuration Files',
+        content: `| File | Description |
+|------|-------------|
+| \`~/.claude/settings.json\` | Global configuration |
+| \`project/.claude/settings.local.json\` | Project configuration |
+| \`~/.claude/agents/*.md\` | Custom agents (editable) |
+| \`~/.claude/skills/*/SKILL.md\` | Custom skills |
+| \`~/.claude/commands/*.md\` | Custom slash commands |
+| \`~/.claude/plugins/\` | Installed plugins |
+| \`~/.claude/projects/\` | Session history per project |
+| \`~/.claude/dashboard-profiles/\` | Saved profiles |`,
+      },
+    ],
+  },
 }
 
 export function DocsPage() {
   const { locale } = useI18n()
-  const sections = docs[locale]
+  const { title, sections } = docs[locale]
 
   return (
-    <div className="p-6 max-w-3xl">
-      <h2 className="text-2xl font-bold mb-6">{locale === 'it' ? 'Documentazione' : 'Documentation'}</h2>
-      <div className="space-y-6">
+    <div className="p-6 max-w-4xl">
+      <h2 className="text-2xl font-bold mb-8">{title}</h2>
+      <div className="space-y-8">
         {sections.map((section, i) => (
           <section key={i}>
-            <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
-            <div className="text-sm text-muted-foreground prose prose-invert prose-sm max-w-none [&_p]:my-2 [&_ul]:my-1 [&_li]:my-0.5 [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">{section.icon}</span>
+              <h3 className="text-xl font-bold">{section.title}</h3>
+            </div>
+            <div className="pl-11 prose prose-invert prose-sm max-w-none [&_table]:w-full [&_th]:text-left [&_th]:py-2 [&_th]:px-3 [&_th]:bg-muted/50 [&_th]:font-medium [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wider [&_td]:py-2 [&_td]:px-3 [&_td]:border-b [&_td]:border-border [&_tr]:border-b [&_tr]:border-border [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_blockquote]:border-l-primary [&_blockquote]:bg-primary/5 [&_blockquote]:py-2 [&_blockquote]:px-4 [&_blockquote]:rounded-r-lg [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5 [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-base [&_table]:my-3">
               <ReactMarkdown>{section.content}</ReactMarkdown>
             </div>
+            {i < sections.length - 1 && <Separator className="mt-8" />}
           </section>
         ))}
       </div>
