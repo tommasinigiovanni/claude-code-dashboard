@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { useI18n } from '@/i18n/useI18n'
+import { ImportExportPage } from '@/pages/ImportExportPage'
 
 export const SETTINGS_KEY = 'claude-dashboard-settings'
 
@@ -328,6 +329,11 @@ export function SettingsPage() {
         </div>
         <p className="text-xs text-muted-foreground">{t('settings.localDataDesc')}</p>
       </div>
+
+      {/* Import / Export */}
+      <ImportExportPage />
+
+      <Separator className="mb-8 mt-8" />
 
       {/* Info */}
       <div className="rounded-lg border border-border p-4">

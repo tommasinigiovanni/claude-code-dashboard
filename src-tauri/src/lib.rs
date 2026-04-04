@@ -1,7 +1,10 @@
 mod chat;
 mod config;
 mod dialog;
+mod import_export;
 mod launcher;
+mod logs;
+mod profiles;
 mod telegram;
 mod terminal;
 mod tray;
@@ -28,10 +31,18 @@ pub fn run() {
             config::write_agent_file,
             config::delete_agent_file,
             config::toggle_plugin,
+            config::health_check_mcp,
             dialog::pick_directory,
+            import_export::export_config,
+            import_export::import_config,
             launcher::open_folder,
             launcher::check_claude_installed,
             launcher::launch_claude_code,
+            logs::read_session_logs,
+            profiles::list_profiles,
+            profiles::save_profile,
+            profiles::load_profile,
+            profiles::delete_profile,
             telegram::telegram_start_bot,
             telegram::telegram_stop_bot,
             telegram::telegram_bot_status,

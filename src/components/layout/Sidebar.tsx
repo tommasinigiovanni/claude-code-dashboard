@@ -9,6 +9,9 @@ const mainNavItems: { id: Page; labelKey: TranslationKey; icon: string }[] = [
   { id: 'skills', labelKey: 'nav.skills', icon: '⚡' },
   { id: 'subagents', labelKey: 'nav.subagents', icon: '🤖' },
   { id: 'launcher', labelKey: 'nav.launcher', icon: '🚀' },
+  { id: 'profiles', labelKey: 'nav.profiles', icon: '📋' },
+  { id: 'logs', labelKey: 'nav.logs', icon: '📜' },
+  { id: 'health', labelKey: 'nav.health', icon: '🏥' },
   { id: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
 ]
 

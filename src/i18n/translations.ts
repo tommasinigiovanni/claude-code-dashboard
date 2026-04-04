@@ -7,6 +7,9 @@ const translations = {
   'nav.subagents': { it: 'Sub-agents', en: 'Sub-agents' },
   'nav.launcher': { it: 'Launcher', en: 'Launcher' },
   'nav.settings': { it: 'Impostazioni', en: 'Settings' },
+  'nav.profiles': { it: 'Profili', en: 'Profiles' },
+  'nav.logs': { it: 'Log Sessioni', en: 'Session Logs' },
+  'nav.health': { it: 'Health Check', en: 'Health Check' },
   'nav.docs': { it: 'Documentazione', en: 'Documentation' },
   'nav.credits': { it: 'Credits', en: 'Credits' },
 

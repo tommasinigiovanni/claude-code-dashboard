@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { useUiStore } from '@/store/uiStore'
@@ -11,6 +12,9 @@ import { LauncherPage } from '@/pages/LauncherPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { DocsPage } from '@/pages/DocsPage'
 import { CreditsPage } from '@/pages/CreditsPage'
+import { ProfilesPage } from '@/pages/ProfilesPage'
+import { LogsPage } from '@/pages/LogsPage'
+import { HealthPage } from '@/pages/HealthPage'
 import { CommandPalette } from '@/components/CommandPalette'
 import { useI18n } from '@/i18n/useI18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -52,6 +56,12 @@ function MainContent() {
       return <LauncherPage />
     case 'settings':
       return <SettingsPage />
+    case 'profiles':
+      return <ProfilesPage />
+    case 'logs':
+      return <LogsPage />
+    case 'health':
+      return <HealthPage />
     case 'docs':
       return <DocsPage />
     case 'credits':
@@ -61,6 +71,8 @@ function MainContent() {
 
 function App() {
   useConfig()
+  const { showOnboarding, markDone } = useOnboarding()
+  const [onboardingVisible, setOnboardingVisible] = useState(showOnboarding)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const setActivePage = useUiStore((s) => s.setActivePage)
@@ -100,6 +112,9 @@ function App() {
         onOpenChange={setPaletteOpen}
         onTmuxAttach={handleTmuxAttach}
       />
+      {onboardingVisible && (
+        <OnboardingWizard onComplete={() => { markDone(); setOnboardingVisible(false) }} />
+      )}
       <Toaster />
     </TooltipProvider>
   )
