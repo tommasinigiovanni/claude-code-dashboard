@@ -67,29 +67,23 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       'flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-200',
       collapsed ? 'w-14' : 'w-56'
     )}>
-      <div className={cn('flex flex-col px-3 pt-4 pb-2', collapsed && 'items-center')}>
+      <div className={cn('relative flex flex-col px-3 pt-4 pb-2', collapsed && 'items-center')}>
         {!collapsed ? (
           <>
-            <div className="flex items-center justify-between mb-2">
-              <img src="/icons.svg" alt="" className="w-8 h-8 hidden" />
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center border border-primary/20">
-                <span className="text-[10px] font-bold text-primary tracking-tighter">CCD</span>
-              </div>
-              <div className="flex-1" />
-              <button
-                onClick={onToggle}
-                className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 rounded"
-              >
-                <PanelLeftCloseIcon className="size-4" />
-              </button>
+            <div className="flex flex-col items-center">
+              <img src="/app-icon.png" alt="CCD" className="w-12 h-12 rounded-xl mb-1.5" />
+              <h1 className="text-xs font-semibold tracking-tight text-center leading-tight">Claude Code<br/>Dashboard</h1>
             </div>
-            <h1 className="text-sm font-semibold tracking-tight px-1">Claude Code Dashboard</h1>
+            <button
+              onClick={onToggle}
+              className="absolute top-3 right-2 text-sidebar-foreground/30 hover:text-sidebar-foreground p-1 rounded"
+            >
+              <PanelLeftCloseIcon className="size-3.5" />
+            </button>
           </>
         ) : (
           <>
-            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center border border-primary/20 mb-2">
-              <span className="text-[9px] font-bold text-primary tracking-tighter">CCD</span>
-            </div>
+            <img src="/app-icon.png" alt="CCD" className="w-10 h-10 rounded-xl mb-2" />
             <button
               onClick={onToggle}
               className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 rounded"

@@ -5,7 +5,22 @@
 [![Made with AI](https://img.shields.io/badge/Made%20with-Claude%20Code%20%E2%9D%A4%EF%B8%8F-ff69b4)](https://claude.ai/code)
 [![Giovanni Tommasini](https://img.shields.io/badge/Giovanni%20Tommasini-CTO%20%26%20Developer-blue)](https://giovannitommasini.it/)
 
-**Claude Code Dashboard** is a desktop GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations. Built for both developers and non-technical users.
+**Claude Code Dashboard** is a desktop GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations.
+
+## Why this project?
+
+Claude Code has quickly become the most powerful AI coding assistant available — but it's a terminal-based tool. For developers, that's natural. For everyone else — content creators, project managers, marketers, entrepreneurs — the terminal is a wall.
+
+Claude Code can do incredible things beyond coding: write editorial plans, manage emails, search the web, analyze documents, automate workflows. But none of that matters if people can't get past the terminal prompt.
+
+**Claude Code Dashboard breaks that wall.** It wraps Claude Code in a familiar, visual interface:
+
+- A **chat mode** that feels like WhatsApp — type a message, get a response, no terminal knowledge needed
+- **Permission approval buttons** — when Claude wants to edit a file, you tap Approve or Reject
+- **Mobile control via Telegram** — manage Claude Code from your phone
+- A full **dashboard** for developers to manage MCP servers, plugins, agents, and configurations
+
+The goal is simple: make Claude Code accessible to everyone, not just developers.
 
 ## Features
 
