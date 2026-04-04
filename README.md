@@ -7,6 +7,11 @@
 
 **Claude Code Dashboard** is a desktop GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations.
 
+### [⬇️ Download for macOS (Apple Silicon)](https://github.com/tommasinigiovanni/claude-code-dashboard/releases/latest/download/Claude.Code.Dashboard_0.6.0_aarch64.dmg)
+
+> No compilation needed — just download the `.dmg`, drag to Applications, and launch.
+> Requires [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed (`npm install -g @anthropic-ai/claude-code`)
+
 ## Why this project?
 
 Claude Code has quickly become the most powerful AI coding assistant available — but it's a terminal-based tool. For developers, that's natural. For everyone else — content creators, project managers, marketers, entrepreneurs — the terminal is a wall.

@@ -33,7 +33,9 @@
       "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/24.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/launcher.png)",
       "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/25.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/terminal-tmux.png)",
       "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/26.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/health-check.png)",
-      "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/27.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/settings.png)"
+      "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/27.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/settings.png)",
+      "Bash(git push:*)",
+      "Bash(gh release:*)"
     ]
   }
 }
