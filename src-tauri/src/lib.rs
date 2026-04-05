@@ -24,6 +24,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             backup::auto_backup,
+            backup::list_backups,
+            backup::restore_backup,
+            backup::delete_backup,
             chat::chat_start,
             chat::chat_send,
             chat::chat_approve,

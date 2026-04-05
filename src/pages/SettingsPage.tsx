@@ -309,6 +309,94 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
   )
 }
 
+// ─── Backup Section ───────────────────────────────────
+
+function BackupSection({ locale }: { locale: string }) {
+  const [backups, setBackups] = useState<{ filename: string; timestamp: number; size_bytes: number }[]>([])
+
+  const loadBackups = () => {
+    invoke<{ filename: string; timestamp: number; size_bytes: number }[]>('list_backups')
+      .then(setBackups)
+      .catch(() => {})
+  }
+
+  useEffect(() => { loadBackups() }, [])
+
+  const handleCreate = async () => {
+    try {
+      const result = await invoke<string>('auto_backup')
+      toast.success(`Backup: ${result}`)
+      loadBackups()
+    } catch (e) {
+      toast.error(`Error: ${e}`)
+    }
+  }
+
+  const handleRestore = async (filename: string) => {
+    const msg = locale === 'it'
+      ? `Ripristinare ${filename}? La configurazione attuale verrà sovrascritta.`
+      : `Restore ${filename}? Current configuration will be overwritten.`
+    if (!window.confirm(msg)) return
+    try {
+      await invoke('restore_backup', { filename })
+      toast.success(locale === 'it' ? 'Backup ripristinato' : 'Backup restored')
+    } catch (e) {
+      toast.error(`Error: ${e}`)
+    }
+  }
+
+  const handleDelete = async (filename: string) => {
+    try {
+      await invoke('delete_backup', { filename })
+      toast.success(locale === 'it' ? 'Backup eliminato' : 'Backup deleted')
+      loadBackups()
+    } catch (e) {
+      toast.error(`Error: ${e}`)
+    }
+  }
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    return `${(bytes / 1024).toFixed(1)} KB`
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Backup</Label>
+        <Button variant="outline" size="sm" onClick={handleCreate}>
+          {locale === 'it' ? 'Crea backup ora' : 'Create backup now'}
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {locale === 'it'
+          ? 'Un backup viene creato ad ogni avvio. Ultimi 7 conservati.'
+          : 'A backup is created on each launch. Last 7 kept.'}
+      </p>
+      {backups.length > 0 && (
+        <div className="space-y-1.5">
+          {backups.map((b) => (
+            <div key={b.filename} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
+              <div>
+                <span className="text-xs font-mono">{new Date(b.timestamp * 1000).toLocaleString(locale)}</span>
+                <span className="text-xs text-muted-foreground ml-2">{formatSize(b.size_bytes)}</span>
+              </div>
+              <div className="flex gap-1.5">
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => handleRestore(b.filename)}>
+                  {locale === 'it' ? 'Ripristina' : 'Restore'}
+                </Button>
+                <Button variant="ghost" size="sm" className="h-6 text-xs text-destructive" onClick={() => handleDelete(b.filename)}>
+                  ×
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Settings Page ────────────────────────────────────
 
 export function SettingsPage() {
@@ -491,24 +579,7 @@ export function SettingsPage() {
 
           <Separator />
 
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Backup</Label>
-            <p className="text-xs text-muted-foreground">
-              {locale === 'it'
-                ? 'Un backup viene creato ad ogni avvio. Ultimi 7 conservati in ~/.claude/dashboard-backups/'
-                : 'A backup is created on each launch. Last 7 kept in ~/.claude/dashboard-backups/'}
-            </p>
-            <Button variant="outline" size="sm" onClick={async () => {
-              try {
-                const result = await invoke<string>('auto_backup')
-                toast.success(`Backup: ${result}`)
-              } catch (e) {
-                toast.error(`${t('common.error')}: ${e}`)
-              }
-            }}>
-              {locale === 'it' ? 'Crea backup ora' : 'Create backup now'}
-            </Button>
-          </div>
+          <BackupSection locale={locale} />
         </div>
       </SettingsCard>
 
