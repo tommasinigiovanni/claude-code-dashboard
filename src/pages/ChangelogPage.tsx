@@ -3,16 +3,34 @@ import remarkGfm from 'remark-gfm'
 import { useI18n } from '@/i18n/useI18n'
 
 const changelog = `
+## v1.0.0 — 2026-04-05 🎉
+
+**First Stable Release!**
+
+Everything is production-ready. All features polished and tested:
+
+- 🔌 **MCP Manager** — Cloud + local with search and stats bar
+- ⚡ **Skills & Plugins** — Filter tabs, toggle, search
+- 🤖 **Sub-agents** — Collapsible sections, search, edit .md files
+- 🚀 **Launcher** — Chat, terminal, tmux split, external terminals
+- 💬 **Chat Mode** — PTY-based with permission Approve/Reject
+- 📱 **Telegram Bot** — Inline buttons, session memory, auto-start
+- 🖥️ **SSH Remote** — Full remote VM support
+- 📋 **Profiles** — Save/load with confirm dialogs
+- 📜 **Session Logs** — Type filters, relative timestamps
+- 🏥 **Health Check** — Auto-refresh, stats summary
+- 📦 **Import/Export** — Full config transfer
+- 👋 **Onboarding Wizard**
+- ⌨️ **Cmd+K** — Command Palette
+- 🌐 **i18n IT/EN** — Fully bilingual
+- 🎨 **UX Redesign** — Card-based, Lucide icons, Barlow font
+
+---
+
 ## v0.7.0 — 2026-04-05
 
-**Major: SSH Remote VM Support**
-- 🖥️ **SSH Connection** — Connect to remote VMs where Claude Code is installed
-- All data reads from remote: MCP, Skills, Plugins, Sub-agents, tmux sessions
-- Remote folder picker with autocomplete from recent projects
-- Health check runs on remote VM
-- Launcher shows remote tmux sessions and recent projects
-- SSH profile management in Settings (add, test, delete, switch)
-- Seamless switching between Local and Remote mode
+**SSH Remote VM Support**
+- SSH profiles, remote data loading, remote tmux, remote health check
 
 ---
 

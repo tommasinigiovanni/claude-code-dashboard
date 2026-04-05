@@ -2,22 +2,41 @@
 
 All notable changes to Claude Code Dashboard will be documented in this file.
 
-## [0.7.0] - 2026-04-05
+## [1.0.0] - 2026-04-05 — First Stable Release 🎉
 
-### Added
-- **SSH Remote VM** — Connect to remote VMs with Claude Code installed
-- Full remote data loading: MCP, Skills, Plugins, Sub-agents, tmux, recent projects
-- SSH profile management (add, test connection, delete, switch)
-- Remote health check (runs claude on VM to get MCP status)
-- Remote tmux session listing and reattach
-- Remote folder picker with autocomplete suggestions
-- SSH indicator in Launcher showing active connection
-- Seamless switching between Local and Remote mode
+### Highlights
+This is the first production-ready release of Claude Code Dashboard — a desktop GUI
+that makes Claude Code accessible to everyone, not just developers.
 
-### Changed
-- Launcher uses remote tmux sessions and recent projects when SSH active
-- Health check supports both local and remote execution
-- Version bumped from 0.6.0 to 0.7.0
+### All Features
+- **MCP Manager** — Cloud connectors + local MCP CRUD with search and stats
+- **Skills & Plugins** — Toggle plugins, browse skills with filter tabs
+- **Sub-agents** — User/Plugin/Config agents with search and collapsible sections
+- **Launcher** — Chat mode, embedded terminal, external terminals, tmux split
+- **Chat Mode** — PTY-based chat with permission Approve/Reject buttons
+- **Telegram Bot** — Mobile control with inline buttons, session memory, auto-start
+- **SSH Remote** — Connect to VMs, full remote data loading, remote tmux
+- **Profiles** — Save/load named configuration sets with confirm dialogs
+- **Session Logs** — Browse logs with type filters and relative timestamps
+- **Health Check** — MCP status with auto-refresh and summary stats
+- **Import/Export** — Transfer full config as JSON
+- **Onboarding Wizard** — Guided first-launch setup
+- **Cmd+K** — Command Palette for quick navigation
+- **Context Switcher** — Global/Project with recent projects (local + remote)
+- **i18n IT/EN** — Full bilingual localization
+- **Dark/Light/System** themes
+- **System Tray** — Background operation
+- **Barlow font + Lucide icons** — Professional UI
+- **Card-based Settings** — Collapsible sections
+- **Documentation** — 9 sections with GFM tables, fully bilingual
+- **Changelog** — In-app + CHANGELOG.md
+
+### Technical
+- Tauri 2 (Rust + React + TypeScript)
+- shadcn/ui (base-ui) + Tailwind CSS v4
+- Zustand state management
+- xterm.js + portable-pty for terminal
+- remark-gfm for markdown rendering
 
 ## [0.6.0] - 2026-04-04
 
