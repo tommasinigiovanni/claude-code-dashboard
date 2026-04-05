@@ -114,6 +114,78 @@ const translations = {
   'palette.tmuxSessions': { it: 'Sessioni tmux', en: 'tmux Sessions' },
   'palette.noResults': { it: 'Nessun risultato', en: 'No results' },
 
+  // MCP Page (extended)
+  'mcp.statsCloud': { it: 'Cloud', en: 'Cloud' },
+  'mcp.statsLocal': { it: 'Locali', en: 'Local' },
+  'mcp.searchPlaceholder': { it: 'Cerca MCP servers...', en: 'Search MCP servers...' },
+  'mcp.noResults': { it: 'Nessun risultato per la ricerca.', en: 'No results for your search.' },
+  'mcp.emptyDesc': { it: 'Aggiungi un MCP server per iniziare.', en: 'Add an MCP server to get started.' },
+
+  // Skills Page (extended)
+  'skills.statsPlugins': { it: 'Plugins', en: 'Plugins' },
+  'skills.statsSkills': { it: 'Skills', en: 'Skills' },
+  'skills.searchPlaceholder': { it: 'Cerca skills e plugins...', en: 'Search skills and plugins...' },
+  'skills.filterAll': { it: 'Tutti', en: 'All' },
+  'skills.filterPlugins': { it: 'Plugins', en: 'Plugins' },
+  'skills.filterSkills': { it: 'Skills', en: 'Skills' },
+  'skills.emptyDesc': { it: 'Nessun plugin o skill trovato. Installa dei plugin dal marketplace.', en: 'No plugins or skills found. Install plugins from the marketplace.' },
+
+  // Sub-agents (extended)
+  'agents.statsUser': { it: 'User', en: 'User' },
+  'agents.statsPlugin': { it: 'Plugin', en: 'Plugin' },
+  'agents.statsConfig': { it: 'Config', en: 'Config' },
+  'agents.searchPlaceholder': { it: 'Cerca agents...', en: 'Search agents...' },
+  'agents.emptyDesc': { it: 'Aggiungi un sub-agent per delegare compiti specifici.', en: 'Add a sub-agent to delegate specific tasks.' },
+
+  // Profiles (extended)
+  'profiles.title': { it: 'Profili', en: 'Profiles' },
+  'profiles.saveCurrentConfig': { it: '+ Salva configurazione attuale', en: '+ Save current config' },
+  'profiles.description': { it: 'Salva e carica profili di configurazione per passare rapidamente tra diversi setup.', en: 'Save and load configuration profiles to quickly switch between different setups.' },
+  'profiles.emptyTitle': { it: 'Nessun profilo salvato', en: 'No saved profiles' },
+  'profiles.emptyDesc': { it: 'Salva la tua configurazione attuale come profilo per poterla ripristinare in futuro.', en: 'Save your current configuration as a profile to restore it later.' },
+  'profiles.load': { it: 'Carica', en: 'Load' },
+  'profiles.delete': { it: 'Elimina', en: 'Delete' },
+  'profiles.confirmLoad': { it: 'Caricare il profilo "{name}"? La configurazione attuale verra\' sovrascritta.', en: 'Load profile "{name}"? Current configuration will be overwritten.' },
+  'profiles.confirmDelete': { it: 'Eliminare il profilo "{name}"?', en: 'Delete profile "{name}"?' },
+  'profiles.saved': { it: 'Profilo salvato', en: 'Profile saved' },
+  'profiles.loaded': { it: 'Profilo caricato', en: 'Profile loaded' },
+  'profiles.saveDialog': { it: 'Salva profilo', en: 'Save profile' },
+  'profiles.namePlaceholder': { it: 'es. produzione', en: 'e.g. production' },
+  'profiles.descPlaceholder': { it: 'Descrizione opzionale...', en: 'Optional description...' },
+  'profiles.cancel': { it: 'Annulla', en: 'Cancel' },
+
+  // Logs (extended)
+  'logs.title': { it: 'Log Sessioni', en: 'Session Logs' },
+  'logs.refresh': { it: 'Aggiorna', en: 'Refresh' },
+  'logs.project': { it: 'Progetto', en: 'Project' },
+  'logs.filterAll': { it: 'Tutti', en: 'All' },
+  'logs.filterUser': { it: 'User', en: 'User' },
+  'logs.filterAssistant': { it: 'Assistant', en: 'Assistant' },
+  'logs.filterTool': { it: 'Tool', en: 'Tool' },
+  'logs.emptyTitle': { it: 'Nessun log trovato', en: 'No logs found' },
+  'logs.emptyDesc': { it: 'Avvia una sessione di Claude Code per vedere i log qui.', en: 'Start a Claude Code session to see logs here.' },
+  'logs.entries': { it: 'voci', en: 'entries' },
+  'logs.scrollBottom': { it: 'Vai in fondo', en: 'Scroll to bottom' },
+
+  // Health (extended)
+  'health.title': { it: 'Health Check', en: 'Health Check' },
+  'health.description': { it: 'Verifica lo stato di connessione dei server MCP configurati.', en: 'Check the connection status of configured MCP servers.' },
+  'health.runCheck': { it: 'Esegui check', en: 'Run check' },
+  'health.checking': { it: 'Verifica in corso...', en: 'Checking...' },
+  'health.connected': { it: 'Connesso', en: 'Connected' },
+  'health.disconnected': { it: 'Disconnesso', en: 'Disconnected' },
+  'health.noServers': { it: 'Nessun server MCP configurato.', en: 'No MCP servers configured.' },
+  'health.noServersDesc': { it: 'Aggiungi dei server MCP nella pagina apposita per verificarne lo stato.', en: 'Add MCP servers from the MCP page to check their status.' },
+  'health.autoRefresh': { it: 'Auto-aggiornamento', en: 'Auto-refresh' },
+  'health.lastCheck': { it: 'Ultimo check', en: 'Last check' },
+  'health.statsConnected': { it: 'Connessi', en: 'Connected' },
+  'health.statsDisconnected': { it: 'Disconnessi', en: 'Disconnected' },
+
+  // Credits (extended)
+  'credits.title': { it: 'Credits', en: 'Credits' },
+  'credits.builtWith': { it: 'Sviluppato con', en: 'Built with' },
+  'credits.pairProgramming': { it: 'Interamente progettato e sviluppato in pair programming con Claude Code.', en: 'Entirely designed and developed in pair programming with Claude Code.' },
+
   // Common
   'common.global': { it: 'Globale', en: 'Global' },
   'common.project': { it: 'Progetto', en: 'Project' },

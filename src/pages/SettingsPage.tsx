@@ -327,7 +327,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-4">
+    <div className="p-6 space-y-4">
       <h2 className="text-2xl font-bold mb-2">{t('settings.title')}</h2>
 
       {/* ── Appearance ── */}
