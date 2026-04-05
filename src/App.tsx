@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { getSettings } from '@/pages/SettingsPage'
 import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
-import { useUiStore } from '@/store/uiStore'
+import { useUiStore, type Page } from '@/store/uiStore'
 import { useConfigStore } from '@/store/configStore'
 import { useConfig } from '@/hooks/useConfig'
 import { McpPage } from '@/pages/McpPage'
@@ -83,7 +84,7 @@ function App() {
 
   // Auto-start Telegram bot if configured
   useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+    const settings = getSettings()
     if (settings.telegramBotToken) {
       invoke('telegram_bot_status').then((status: unknown) => {
         const s = status as { running: boolean }
@@ -100,12 +101,18 @@ function App() {
     }
   }, [])
 
-  // Cmd+K shortcut
+  // Cmd+K shortcut + page shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         setPaletteOpen((open) => !open)
+      }
+      if (e.metaKey && e.key >= '1' && e.key <= '8') {
+        e.preventDefault()
+        const pages: Page[] = ['launcher', 'mcp', 'skills', 'subagents', 'profiles', 'logs', 'health', 'settings']
+        const idx = parseInt(e.key) - 1
+        if (idx < pages.length) setActivePage(pages[idx])
       }
     }
     window.addEventListener('keydown', handler)

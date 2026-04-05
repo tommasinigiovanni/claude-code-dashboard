@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useI18n } from '@/i18n/useI18n'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { Badge } from '@/components/ui/badge'
 import { ContextSwitcher } from './ContextSwitcher'
 
@@ -7,20 +8,12 @@ export function TopBar() {
   const { t } = useI18n()
   const [sshName, setSshName] = useState<string | null>(null)
 
-  // Re-check SSH state periodically (settings are in localStorage)
+  // Re-check SSH state on settings change
   useEffect(() => {
-    const check = () => {
-      const s = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-      const profile = s.activeSshProfile
-        ? (s.sshProfiles || []).find((p: { name: string }) => p.name === s.activeSshProfile)
-        : null
-      setSshName(profile?.name ?? null)
-    }
+    const check = () => setSshName(getSshConfig()?.name ?? null)
     check()
-    // Listen for storage changes and re-check on interval
-    const interval = setInterval(check, 1000)
-    window.addEventListener('storage', check)
-    return () => { clearInterval(interval); window.removeEventListener('storage', check) }
+    window.addEventListener('settings-changed', check)
+    return () => window.removeEventListener('settings-changed', check)
   }, [])
 
   return (

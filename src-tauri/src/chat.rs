@@ -5,9 +5,6 @@ use std::io::{Read, Write};
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-
 // ─── Types ────────────────────────────────────────────
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

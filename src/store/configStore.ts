@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { invoke } from '@tauri-apps/api/core'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import type {
   ClaudeConfig,
   ConfigScope,
@@ -152,21 +153,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
     try {
       // Check if SSH is active
-      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-      const sshProfile = dashSettings.activeSshProfile
-        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
-        : null
+      const sshConfig = getSshConfig()
 
-      if (sshProfile) {
+      if (sshConfig) {
         // SSH mode: read all data from remote machine in one call
-        const sshConfig = {
-          name: sshProfile.name,
-          host: sshProfile.host,
-          port: sshProfile.port,
-          user: sshProfile.user,
-          key_path: sshProfile.keyPath || null,
-        }
-
         const remoteData = await invoke<DashboardData & { tmuxSessions?: unknown[] }>('ssh_read_dashboard_data', {
           config: sshConfig,
         })

@@ -113,9 +113,8 @@ fn sanitize_filename(name: &str) -> String {
 }
 
 fn chrono_now() -> String {
-    // Simple ISO timestamp without chrono crate
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default();
-    format!("{}", now.as_secs())
+    format!("{}", now.as_millis())
 }

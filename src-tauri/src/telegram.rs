@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 
 static BOT_RUNNING: AtomicBool = AtomicBool::new(false);
@@ -22,6 +22,7 @@ struct TelegramUpdate {
 #[derive(Debug, Deserialize)]
 struct TelegramCallbackQuery {
     id: String,
+    #[allow(dead_code)]
     from: TelegramUser,
     message: Option<TelegramCallbackMessage>,
     data: Option<String>,
@@ -29,6 +30,7 @@ struct TelegramCallbackQuery {
 
 #[derive(Debug, Deserialize)]
 struct TelegramUser {
+    #[allow(dead_code)]
     id: i64,
 }
 
@@ -41,6 +43,7 @@ struct TelegramCallbackMessage {
 struct TelegramMessage {
     chat: TelegramChat,
     text: Option<String>,
+    #[allow(dead_code)]
     photo: Option<Vec<TelegramPhotoSize>>,
 }
 
@@ -51,6 +54,7 @@ struct TelegramChat {
 
 #[derive(Debug, Deserialize)]
 struct TelegramPhotoSize {
+    #[allow(dead_code)]
     file_id: String,
     #[allow(dead_code)]
     width: u32,
@@ -60,13 +64,9 @@ struct TelegramPhotoSize {
 
 #[derive(Debug, Deserialize)]
 struct TelegramResponse<T> {
+    #[allow(dead_code)]
     ok: bool,
     result: Option<T>,
-}
-
-#[derive(Debug, Deserialize)]
-struct TelegramFile {
-    file_path: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -385,8 +385,8 @@ pub async fn telegram_start_bot(
                                 continue;
                             }
 
-                            if text.starts_with("/switch ") {
-                                let target = text.strip_prefix("/switch ").unwrap().trim();
+                            if let Some(target) = text.strip_prefix("/switch ") {
+                                let target = target.trim();
                                 let sess_name = if target.starts_with("claude-") {
                                     target.to_string()
                                 } else {
@@ -483,8 +483,8 @@ pub async fn telegram_start_bot(
                         let chat_id = cb.message.as_ref().map(|m| m.chat.id).unwrap_or(0);
                         let data = cb.data.unwrap_or_default();
 
-                        if data.starts_with("switch:") {
-                            let sess_name = data.strip_prefix("switch:").unwrap();
+                        if let Some(sess_name_str) = data.strip_prefix("switch:") {
+                            let sess_name = sess_name_str;
                             let cwd_output = std::process::Command::new("tmux")
                                 .args(["display-message", "-t", sess_name, "-p", "#{pane_current_path}"])
                                 .output();

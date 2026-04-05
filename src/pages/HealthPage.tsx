@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
@@ -41,15 +42,12 @@ export function HealthPage() {
   const runCheck = async () => {
     setLoading(true)
     try {
-      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-      const sshProfile = dashSettings.activeSshProfile
-        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
-        : null
+      const sshConfig = getSshConfig()
 
       let data: [string, boolean, string][]
-      if (sshProfile) {
+      if (sshConfig) {
         data = await invoke<[string, boolean, string][]>('ssh_health_check_mcp', {
-          config: { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null },
+          config: sshConfig,
         })
       } else {
         data = await invoke<[string, boolean, string][]>('health_check_mcp')

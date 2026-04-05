@@ -236,7 +236,7 @@ tmux new-session -s \"$S\" claude\n",
                     if let Some(ref cfg) = ssh_cfg {
                         let mut ssh_args = vec![
                             "ssh".to_string(),
-                            "-o".to_string(), "StrictHostKeyChecking=no".to_string(),
+                            "-o".to_string(), "StrictHostKeyChecking=accept-new".to_string(),
                             "-p".to_string(), cfg.port.to_string(),
                         ];
                         if let Some(ref key) = cfg.key_path {

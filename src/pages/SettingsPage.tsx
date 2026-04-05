@@ -322,6 +322,7 @@ export function SettingsPage() {
     const updated = { ...settings, [key]: value }
     setSettings(updated)
     saveSettings(updated)
+    window.dispatchEvent(new CustomEvent('settings-changed'))
     toast.success(t('settings.saved'))
     if (key === 'activeSshProfile') setTimeout(() => loadConfigs(), 100)
   }
@@ -438,6 +439,13 @@ export function SettingsPage() {
               : 'Create a bot with @BotFather, paste the token. Send /chatid to the bot to get your ID.'}
           </p>
           <TelegramBotControls settings={settings} locale={locale} />
+          {settings.telegramBotToken && !settings.telegramChatId && (
+            <p className="text-xs text-amber-500">
+              ⚠️ {locale === 'it'
+                ? 'Senza Chat ID, chiunque può usare il bot. Invia /chatid al bot per ottenere il tuo ID.'
+                : 'Without Chat ID, anyone can use the bot. Send /chatid to the bot to get your ID.'}
+            </p>
+          )}
         </div>
       </SettingsCard>
 

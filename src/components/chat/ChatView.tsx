@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
@@ -80,6 +81,17 @@ export function ChatView({ projectPath }: ChatViewProps) {
     }
   }, [messages, projectPath])
 
+  // Auto-save chat on window close
+  useEffect(() => {
+    const handleUnload = () => {
+      if (messages.length > 0) {
+        saveChatHistory(projectPath, messages)
+      }
+    }
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
+  }, [messages, projectPath])
+
   // Start PTY session
   useEffect(() => {
     let unlisten: (() => void) | null = null
@@ -87,16 +99,11 @@ export function ChatView({ projectPath }: ChatViewProps) {
     const startSession = async () => {
       try {
         // Check for active SSH profile
-        const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-        const sshProfile = dashSettings.activeSshProfile
-          ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
-          : null
+        const sshConfig = getSshConfig()
 
         const sid = await invoke<string>('chat_start', {
           projectPath: projectPath ?? undefined,
-          sshConfig: sshProfile
-            ? { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null }
-            : null,
+          sshConfig,
         })
         setSessionId(sid)
 
@@ -117,6 +124,12 @@ export function ChatView({ projectPath }: ChatViewProps) {
               setIsLoading(false)
               break
             case 'done': {
+              // Notify if window not focused
+              if (document.hidden && Notification.permission === 'granted') {
+                new Notification('Claude Code', { body: 'Response ready' })
+              } else if (document.hidden && Notification.permission === 'default') {
+                Notification.requestPermission()
+              }
               // Clean up the response text - remove prompt characters
               const cleaned = content
                 .split('\n')

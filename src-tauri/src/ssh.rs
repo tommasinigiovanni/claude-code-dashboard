@@ -10,9 +10,13 @@ pub struct SshConfig {
     pub key_path: Option<String>,  // path to SSH key, None = use default
 }
 
+fn escape_shell_path(path: &str) -> String {
+    path.replace('\'', "'\\''")
+}
+
 fn build_ssh_args(config: &SshConfig) -> Vec<String> {
     let mut args = vec![
-        "-o".to_string(), "StrictHostKeyChecking=no".to_string(),
+        "-o".to_string(), "StrictHostKeyChecking=accept-new".to_string(),
         "-o".to_string(), "ConnectTimeout=10".to_string(),
         "-p".to_string(), config.port.to_string(),
     ];
@@ -56,7 +60,8 @@ pub async fn ssh_test_connection(config: SshConfig) -> Result<String, String> {
 #[tauri::command]
 pub async fn ssh_read_config(config: SshConfig, remote_path: String) -> Result<String, String> {
     let mut args = build_ssh_args(&config);
-    args.push(format!("cat '{}' 2>/dev/null || echo '{{}}'", remote_path));
+    let safe_path = escape_shell_path(&remote_path);
+    args.push(format!("cat '{}' 2>/dev/null || echo '{{}}'", safe_path));
 
     let output = Command::new("ssh")
         .args(&args)
@@ -76,9 +81,10 @@ pub async fn ssh_read_config(config: SshConfig, remote_path: String) -> Result<S
 pub async fn ssh_write_config(config: SshConfig, remote_path: String, content: String) -> Result<(), String> {
     let mut args = build_ssh_args(&config);
     // Backup + write via heredoc
+    let safe_path = escape_shell_path(&remote_path);
     let cmd = format!(
         "mkdir -p $(dirname '{}') && cp '{}' '{}.bak' 2>/dev/null; cat > '{}'",
-        remote_path, remote_path, remote_path, remote_path
+        safe_path, safe_path, safe_path, safe_path
     );
     args.push(cmd);
 
@@ -107,7 +113,9 @@ pub async fn ssh_write_config(config: SshConfig, remote_path: String, content: S
 #[tauri::command]
 pub async fn ssh_list_files(config: SshConfig, remote_dir: String, pattern: String) -> Result<Vec<String>, String> {
     let mut args = build_ssh_args(&config);
-    args.push(format!("find '{}' -name '{}' -type f 2>/dev/null", remote_dir, pattern));
+    let safe_dir = escape_shell_path(&remote_dir);
+    let safe_pattern = escape_shell_path(&pattern);
+    args.push(format!("find '{}' -name '{}' -type f 2>/dev/null", safe_dir, safe_pattern));
 
     let output = Command::new("ssh")
         .args(&args)
@@ -392,9 +400,10 @@ pub async fn ssh_tmux_kill_session(config: SshConfig, session_name: String) -> R
 #[tauri::command]
 pub async fn ssh_list_dirs(config: SshConfig, base_path: String) -> Result<Vec<String>, String> {
     let mut args = build_ssh_args(&config);
+    let safe_path = escape_shell_path(&base_path);
     args.push(format!(
         "find '{}' -maxdepth 2 -type d -name '.git' 2>/dev/null | sed 's/\\.git$//' | head -20",
-        base_path
+        safe_path
     ));
 
     let output = Command::new("ssh")
@@ -412,7 +421,7 @@ pub async fn ssh_list_dirs(config: SshConfig, base_path: String) -> Result<Vec<S
 pub fn get_ssh_command(config: &SshConfig) -> String {
     let mut parts = vec!["ssh".to_string()];
     parts.push("-o".to_string());
-    parts.push("StrictHostKeyChecking=no".to_string());
+    parts.push("StrictHostKeyChecking=accept-new".to_string());
     parts.push("-p".to_string());
     parts.push(config.port.to_string());
     if let Some(ref key) = config.key_path {

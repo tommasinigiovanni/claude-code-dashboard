@@ -5,19 +5,11 @@ import { useConfigStore } from '@/store/configStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getSettings } from '@/pages/SettingsPage'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { EmbeddedTerminal } from '@/components/terminal/EmbeddedTerminal'
 import { ChatView } from '@/components/chat/ChatView'
 import { useI18n } from '@/i18n/useI18n'
 import { Input } from '@/components/ui/input'
-
-function getSshConfig() {
-  const s = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-  const profile = s.activeSshProfile
-    ? (s.sshProfiles || []).find((p: { name: string }) => p.name === s.activeSshProfile)
-    : null
-  if (!profile) return null
-  return { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null }
-}
 
 async function fetchTmuxSessions(): Promise<TmuxSession[]> {
   const ssh = getSshConfig()
@@ -101,7 +93,7 @@ function TmuxSessionTabs({
       fetchTmuxSessions().then(setSessions).catch(() => {})
     }
     load()
-    const interval = setInterval(load, 3000)
+    const interval = setInterval(load, 10000)
     return () => clearInterval(interval)
   }, [])
 

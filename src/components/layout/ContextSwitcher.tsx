@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { useConfigStore } from '@/store/configStore'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { useI18n } from '@/i18n/useI18n'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -13,13 +14,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
-
-function getSshConfig() {
-  const s = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-  return s.activeSshProfile
-    ? (s.sshProfiles || []).find((p: { name: string }) => p.name === s.activeSshProfile)
-    : null
-}
 
 export function ContextSwitcher() {
   const { mode, projectPath, switchToGlobal, switchToProject, recentProjects } = useConfigStore()

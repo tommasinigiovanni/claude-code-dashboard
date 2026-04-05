@@ -1,3 +1,4 @@
+mod backup;
 mod chat;
 mod config;
 mod dialog;
@@ -5,10 +6,12 @@ mod import_export;
 mod launcher;
 mod logs;
 mod profiles;
+mod readers;
 pub mod ssh;
 mod telegram;
 mod terminal;
 mod tray;
+mod types;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,6 +23,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            backup::auto_backup,
             chat::chat_start,
             chat::chat_send,
             chat::chat_approve,

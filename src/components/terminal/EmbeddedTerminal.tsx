@@ -5,6 +5,7 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { Button } from '@/components/ui/button'
 
 interface EmbeddedTerminalProps {
@@ -38,13 +39,7 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
 
     try {
       // Check for active SSH profile
-      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
-      const sshProfile = dashSettings.activeSshProfile
-        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
-        : null
-      const sshConfig = sshProfile
-        ? { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null }
-        : null
+      const sshConfig = getSshConfig()
 
       const id = await invoke<string>('terminal_spawn', {
         projectPath: projectPath ?? undefined,
