@@ -213,14 +213,18 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // Remote: fish shell doesn't support heredoc/bash syntax
-                    // Write script via echo lines piped to bash, then execute
-                    let script_path = format!("/tmp/ccd-tmux-{}.sh", sess_name);
-                    let s = &sess_name;
+                    // Remote: use printf to create script (works in fish+bash)
+                    // Use session name WITHOUT claude- prefix if a session
+                    // with the base name already exists
+                    let base_name = sess_name.strip_prefix("claude-").unwrap_or(&sess_name).to_string();
+                    let script_path = format!("/tmp/ccd-tmux-{}.sh", base_name);
                     let lines = vec![
                         "#!/bin/sh".to_string(),
-                        format!("S={}", s),
+                        format!("S={}", sess_name),
+                        format!("B={}", base_name),
+                        // Check both names: claude-xxx and xxx
                         "tmux has-session -t $S 2>/dev/null && exec tmux attach -t $S".to_string(),
+                        "tmux has-session -t $B 2>/dev/null && exec tmux attach -t $B".to_string(),
                         "tmux new-session -d -s $S".to_string(),
                         "tmux split-window -t $S -v -p 30".to_string(),
                         "tmux select-pane -t $S:0.0".to_string(),
