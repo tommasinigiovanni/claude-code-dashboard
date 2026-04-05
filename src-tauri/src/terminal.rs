@@ -213,40 +213,29 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // For SSH: two short commands — check then attach or create+attach
-                    drop(sessions);
-
-                    // First: check if session exists and attach, OR create new
-                    let check_and_run = format!(
-                        "tmux has-session -t {s} 2>/dev/null && tmux attach -t {s} || /tmp/ccd-tmux-{s}.sh\n",
-                        s = sess_name
-                    );
-
-                    // Create the setup script on remote first
-                    let create_script = format!(
-                        "printf '#!/bin/sh\\ntmux new-session -d -s {s}\\ntmux split-window -t {s} -v -p 30\\ntmux send-keys -t {s}:0.0 claude Enter\\ntmux set -t {s} mouse on\\ntmux set -t {s} pane-border-lines heavy\\ntmux select-pane -t {s}:0.1 -P \"fg=colour46,bg=colour16\"\\ntmux select-pane -t {s}:0.0\\ntmux attach -t {s}\\n' > /tmp/ccd-tmux-{s}.sh && chmod +x /tmp/ccd-tmux-{s}.sh\n",
-                        s = sess_name
-                    );
-
-                    // Send create script first
-                    {
-                        let mut s = SESSIONS.lock().unwrap();
-                        if let Some(session) = s.get_mut(&sid_clone) {
-                            let _ = session.writer.write_all(create_script.as_bytes());
-                            let _ = session.writer.flush();
-                        }
-                    }
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-
-                    // Then check and run
-                    {
-                        let mut s = SESSIONS.lock().unwrap();
-                        if let Some(session) = s.get_mut(&sid_clone) {
-                            let _ = session.writer.write_all(check_and_run.as_bytes());
-                            let _ = session.writer.flush();
-                        }
-                    }
-                    return;
+                    // For SSH: use exact same script approach as local
+                    // The PTY is already connected via SSH, so the script
+                    // runs on the remote machine
+                    let script = r##"#!/bin/sh
+S=__SESS__
+tmux has-session -t $S 2>/dev/null && exec tmux attach -t $S
+tmux new-session -d -s $S
+tmux split-window -t $S -v -p 30
+tmux select-pane -t $S:0.0
+tmux send-keys -t $S:0.0 'claude' Enter
+tmux set -t $S mouse on
+tmux set -t $S pane-border-style 'fg=colour240'
+tmux set -t $S pane-active-border-style 'fg=colour141,bold'
+tmux set -t $S pane-border-lines heavy
+tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'
+tmux select-pane -t $S:0.0
+tmux attach -t $S
+"##.replace("__SESS__", &sess_name);
+                    let script_path = format!("/tmp/ccd-tmux-{}.sh", sess_name);
+                    format!(
+                        "cat > {} << 'CCDEOF'\n{}\nCCDEOF\nchmod +x {} && {}\n",
+                        script_path, script, script_path, script_path
+                    )
                 } else {
                     // Local: check with local command
                     let exists = std::process::Command::new("tmux")
