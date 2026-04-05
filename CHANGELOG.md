@@ -2,6 +2,23 @@
 
 All notable changes to Claude Code Dashboard will be documented in this file.
 
+## [0.7.0] - 2026-04-05
+
+### Added
+- **SSH Remote VM** — Connect to remote VMs with Claude Code installed
+- Full remote data loading: MCP, Skills, Plugins, Sub-agents, tmux, recent projects
+- SSH profile management (add, test connection, delete, switch)
+- Remote health check (runs claude on VM to get MCP status)
+- Remote tmux session listing and reattach
+- Remote folder picker with autocomplete suggestions
+- SSH indicator in Launcher showing active connection
+- Seamless switching between Local and Remote mode
+
+### Changed
+- Launcher uses remote tmux sessions and recent projects when SSH active
+- Health check supports both local and remote execution
+- Version bumped from 0.6.0 to 0.7.0
+
 ## [0.6.0] - 2026-04-04
 
 ### Added

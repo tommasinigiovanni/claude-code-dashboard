@@ -121,6 +121,47 @@ function TmuxSessionTabs({
   )
 }
 
+function RemoteFolderPicker({ onSelect, suggestions }: { onSelect: (path: string) => void; suggestions: string[] }) {
+  const [value, setValue] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const filtered = suggestions.filter((s) =>
+    s.toLowerCase().includes(value.toLowerCase())
+  )
+
+  return (
+    <div className="relative flex gap-2 flex-1">
+      <div className="relative flex-1">
+        <Input
+          value={value}
+          onChange={(e) => { setValue(e.target.value); setShowSuggestions(true) }}
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          placeholder="/home/user/project"
+          className="h-9"
+          onKeyDown={(e) => e.key === 'Enter' && value.trim() && onSelect(value.trim())}
+        />
+        {showSuggestions && filtered.length > 0 && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-popover shadow-lg">
+            {filtered.map((path) => (
+              <button
+                key={path}
+                className="w-full text-left px-3 py-2 text-sm font-mono hover:bg-accent transition-colors truncate"
+                onMouseDown={() => { setValue(path); onSelect(path) }}
+              >
+                {path}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <Button variant="outline" size="sm" onClick={() => value.trim() && onSelect(value.trim())} disabled={!value.trim()}>
+        ▶
+      </Button>
+    </div>
+  )
+}
+
 const RECENT_KEY = 'claude-dashboard-recent-launches'
 const MAX_RECENT = 5
 
@@ -140,7 +181,7 @@ function addRecentLaunch(path: string) {
 }
 
 export function LauncherPage() {
-  const { mode, projectPath, mcpServers, subAgents, localSkills, installedPlugins, cloudConnectors } =
+  const { mode, projectPath, mcpServers, subAgents, localSkills, installedPlugins, cloudConnectors, recentProjects } =
     useConfigStore()
   const { t } = useI18n()
   const [claudeInstalled, setClaudeInstalled] = useState<boolean | null>(null)
@@ -154,7 +195,12 @@ export function LauncherPage() {
 
   useEffect(() => {
     invoke<boolean>('check_claude_installed').then(setClaudeInstalled).catch(() => setClaudeInstalled(false))
-    setRecentLaunches(getRecentLaunches())
+    // Use remote recent projects when SSH is active, local otherwise
+    if (getSshConfig()) {
+      // recentProjects from store are already loaded from VM
+    } else {
+      setRecentLaunches(getRecentLaunches())
+    }
 
     // Check if navigated here via Command Palette tmux attach
     if (window.__tmuxAttach) {
@@ -205,16 +251,8 @@ export function LauncherPage() {
   }
 
   const isRemote = !!getSshConfig()
-  const [remotePathInput, setRemotePathInput] = useState('')
 
   const handleSelectAndLaunch = async () => {
-    if (isRemote) {
-      // For SSH, use the text input
-      if (remotePathInput.trim()) {
-        await handleLaunch(remotePathInput.trim())
-      }
-      return
-    }
     try {
       const selected = await invoke<string | null>('pick_directory')
       if (selected) {
@@ -312,18 +350,7 @@ export function LauncherPage() {
             {t('launcher.launch')} {isEmbedded ? `(${t('launcher.embeddedTerminal')})` : ''}
           </Button>
           {isRemote ? (
-            <div className="flex gap-2 flex-1">
-              <Input
-                value={remotePathInput}
-                onChange={(e) => setRemotePathInput(e.target.value)}
-                placeholder="/home/user/project"
-                className="flex-1 h-9"
-                onKeyDown={(e) => e.key === 'Enter' && handleSelectAndLaunch()}
-              />
-              <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled || !remotePathInput.trim()}>
-                ▶
-              </Button>
-            </div>
+            <RemoteFolderPicker onSelect={(path) => handleLaunch(path)} suggestions={recentProjects} />
           ) : (
             <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled}>
               {t('launcher.selectAndLaunch')}
@@ -381,11 +408,11 @@ export function LauncherPage() {
       }} />}
 
       {/* Recent launches */}
-      {recentLaunches.length > 0 && (
+      {(isRemote ? recentProjects : recentLaunches).length > 0 && (
         <>
           <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('launcher.recentLaunches')}</h3>
           <div className="space-y-2">
-            {recentLaunches.map((path) => (
+            {(isRemote ? recentProjects : recentLaunches).map((path) => (
               <div
                 key={path}
                 className="flex items-center justify-between rounded-lg border border-border p-3"

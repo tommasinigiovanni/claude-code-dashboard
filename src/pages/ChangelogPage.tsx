@@ -3,6 +3,19 @@ import remarkGfm from 'remark-gfm'
 import { useI18n } from '@/i18n/useI18n'
 
 const changelog = `
+## v0.7.0 — 2026-04-05
+
+**Major: SSH Remote VM Support**
+- 🖥️ **SSH Connection** — Connect to remote VMs where Claude Code is installed
+- All data reads from remote: MCP, Skills, Plugins, Sub-agents, tmux sessions
+- Remote folder picker with autocomplete from recent projects
+- Health check runs on remote VM
+- Launcher shows remote tmux sessions and recent projects
+- SSH profile management in Settings (add, test, delete, switch)
+- Seamless switching between Local and Remote mode
+
+---
+
 ## v0.6.0 — 2026-04-04
 
 **New features:**
