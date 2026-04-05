@@ -57,16 +57,58 @@ const changelog = `
 
 ---
 
+## v0.4.0 — 2026-04-03
+
+**Chat & Telegram:**
+- 💬 **PTY-based Chat** — Interactive chat with Approve/Reject permission buttons
+- 📱 **Telegram Bot** — Mobile control with inline keyboard buttons
+- 🔐 **Permission forwarding** — Claude's tool requests shown as buttons in chat
+- 🖼️ **Image upload** — Drag & drop, paste, file picker in chat
+- 💾 **Chat history** — Persistent per-project in localStorage
+- 🤖 **Telegram session memory** — Context maintained across messages
+- 📋 **Telegram commands** — /sessions, /switch, /new, /help with tappable buttons
+
+---
+
+## v0.3.0 — 2026-04-03
+
+**Terminal & tmux:**
+- 🖥️ **Embedded Terminal** — Full xterm.js terminal inside the app
+- 📺 **tmux split panes** — Claude Code on top (70%), shell below (30%)
+- 🖱️ **Mouse resize** — Drag border between panes
+- 🎨 **Themed panes** — Purple border, green-on-black retro shell
+- 📑 **Session tabs** — Switch between active tmux sessions
+- ⌨️ **Cmd+K Command Palette** — Quick navigation and session switching
+
+---
+
+## v0.2.0 — 2026-04-02
+
+**Configuration & Context:**
+- ☁️ **Cloud MCP connectors** — Read from claude.ai (Gmail, Slack, etc.)
+- 🔌 **Plugin toggle** — Enable/disable marketplace plugins
+- ⚡ **Custom skills** — Read from ~/.claude/skills/ and ~/.claude/commands/
+- 🤖 **Custom agents** — Read/edit/delete from ~/.claude/agents/
+- 📁 **Project-local skills** — Read from project/.claude/skills/
+- 🔄 **Context Switcher** — Global/Project with recent projects
+- 🌐 **i18n IT/EN** — Full localization across all pages
+- 🌙 **Dark/Light/System** theme support
+- 🔔 **System Tray** — Background operation with tray icon
+
+---
+
 ## v0.1.0 — 2026-04-02
 
-**Initial MVP — All milestones M0-M8:**
-- MCP Manager (cloud connectors + local CRUD)
-- Skills & Plugins Viewer
-- Sub-agents Manager
-- Quick Launcher
-- Settings (theme, terminal, path override)
-- Tauri 2 + React + TypeScript + Rust
-- shadcn/ui + Tailwind CSS v4 + Zustand
+**Initial MVP — Milestones M0-M8:**
+- 🔌 MCP Manager (view cloud connectors + CRUD local servers)
+- ⚡ Skills & Plugins Viewer
+- 🤖 Sub-agents Manager
+- 🚀 Quick Launcher (check installation, launch in terminal)
+- ⚙️ Settings (theme, terminal choice, Claude path override)
+- Tauri 2 desktop app (Rust + React + TypeScript)
+- shadcn/ui components + Tailwind CSS v4
+- Zustand state management
+- Atomic config writes with backup (.bak)
 `
 
 export function ChangelogPage() {

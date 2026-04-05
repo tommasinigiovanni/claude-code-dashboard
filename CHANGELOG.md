@@ -46,6 +46,15 @@ All notable changes to Claude Code Dashboard will be documented in this file.
 ## [0.5.0] - 2026-04-04
 
 ### Added
+- **Configuration Profiles** — Save/load named configuration sets
+- **Session Log Viewer** — Browse Claude Code session logs
+- **MCP Health Check** — Verify MCP server connection status
+- **Import/Export** — Export/import full config as JSON
+- **Onboarding Wizard** — Guided first-launch experience
+
+## [0.4.0] - 2026-04-03
+
+### Added
 - **PTY-based Chat** — Interactive chat with permission approval buttons
 - **Telegram Bot** — Control Claude Code from mobile with inline buttons, session memory, /sessions, /switch, /new commands
 - **tmux Split Panes** — Claude Code on top, shell on bottom with themed panels
@@ -64,6 +73,29 @@ All notable changes to Claude Code Dashboard will be documented in this file.
 - **Dark/Light/System theme**
 - **Documentation page** with full feature guide
 - **Credits page** with developer info and tech stack
+
+## [0.3.0] - 2026-04-03
+
+### Added
+- **Embedded Terminal** — Full xterm.js terminal inside the app
+- **tmux split panes** — Claude Code on top, shell below
+- **Mouse resize** between panes
+- **Themed panes** — Purple border, green-on-black shell
+- **Session tabs** — Switch between active tmux sessions
+- **Cmd+K Command Palette** — Quick navigation and session switching
+
+## [0.2.0] - 2026-04-02
+
+### Added
+- **Cloud MCP connectors** — Read from claude.ai
+- **Plugin toggle** — Enable/disable marketplace plugins
+- **Custom skills** — Read from ~/.claude/skills/ and commands/
+- **Custom agents** — Read/edit/delete from ~/.claude/agents/
+- **Project-local skills** — Read from project/.claude/skills/
+- **Context Switcher** — Global/Project with recent projects
+- **i18n IT/EN** — Full localization
+- **Dark/Light/System** theme
+- **System Tray** — Background operation
 
 ## [0.1.0] - 2026-04-02
 
