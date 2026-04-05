@@ -45,7 +45,12 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
 
   const handleKill = async (name: string) => {
     try {
-      await invoke('tmux_kill_session', { sessionName: name })
+      const ssh = getSshConfig()
+      if (ssh) {
+        await invoke('ssh_tmux_kill_session', { config: ssh, sessionName: name })
+      } else {
+        await invoke('tmux_kill_session', { sessionName: name })
+      }
       setSessions((prev) => prev.filter((s) => s.name !== name))
       toast.success(`"${name}" ${t('common.terminated')}`)
     } catch (e) {

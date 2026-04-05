@@ -377,6 +377,19 @@ pub async fn ssh_tmux_list_sessions(config: SshConfig) -> Result<Vec<(String, bo
 }
 
 #[tauri::command]
+pub async fn ssh_tmux_kill_session(config: SshConfig, session_name: String) -> Result<(), String> {
+    let mut args = build_ssh_args(&config);
+    args.push(format!("tmux kill-session -t '{}'", session_name));
+
+    Command::new("ssh")
+        .args(&args)
+        .output()
+        .map_err(|e| format!("SSH error: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn ssh_list_dirs(config: SshConfig, base_path: String) -> Result<Vec<String>, String> {
     let mut args = build_ssh_args(&config);
     args.push(format!(

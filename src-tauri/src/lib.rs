@@ -48,6 +48,7 @@ pub fn run() {
             ssh::ssh_read_dashboard_data,
             ssh::ssh_health_check_mcp,
             ssh::ssh_tmux_list_sessions,
+            ssh::ssh_tmux_kill_session,
             ssh::ssh_list_dirs,
             ssh::ssh_read_config,
             ssh::ssh_write_config,
