@@ -141,7 +141,7 @@ find ~/.claude/skills -name 'SKILL.md' -exec echo '{}' \; 2>/dev/null;
 echo '___SEPARATOR___';
 find ~/.claude/commands -name '*.md' -exec echo '{}' \; 2>/dev/null;
 echo '___SEPARATOR___';
-ls -1t ~/.claude/projects/ 2>/dev/null | head -15;
+for d in $(ls -1t ~/.claude/projects/ 2>/dev/null | head -15); do f=$(ls -1t ~/.claude/projects/$d/*.jsonl 2>/dev/null | head -1); if [ -n "$f" ]; then grep -m1 '"cwd"' "$f" 2>/dev/null | sed 's/.*"cwd":"\([^"]*\)".*/\1/'; fi; done;
 echo '___SEPARATOR___';
 tmux list-sessions -F '#{session_name}|#{session_attached}|#{session_windows}|#{session_created_string}' 2>/dev/null || echo '';
 "#.to_string());
