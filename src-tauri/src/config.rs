@@ -121,22 +121,20 @@ pub async fn write_config(
         .as_object_mut()
         .ok_or("Config is not a JSON object")?;
 
+    // Only update fields that are explicitly set (Some), leave others unchanged
     if let Some(ref servers) = config.mcp_servers {
         obj.insert(
             "mcpServers".to_string(),
             serde_json::to_value(servers).unwrap(),
         );
-    } else {
-        obj.remove("mcpServers");
     }
+    // Don't remove mcpServers when None — it means "no change"
 
     if let Some(ref skills) = config.skills {
         obj.insert(
             "skills".to_string(),
             serde_json::to_value(skills).unwrap(),
         );
-    } else {
-        obj.remove("skills");
     }
 
     if let Some(ref agents) = config.agents {
@@ -144,8 +142,6 @@ pub async fn write_config(
             "agents".to_string(),
             serde_json::to_value(agents).unwrap(),
         );
-    } else {
-        obj.remove("agents");
     }
 
     if config_path.exists() {

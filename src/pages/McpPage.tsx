@@ -105,7 +105,9 @@ export function McpPage() {
                       <CloudIcon className="size-4 text-primary" />
                       <span className="font-medium text-sm">{c.name}</span>
                     </div>
-                    <Badge variant="outline" className="text-xs">{t('common.cloud')}</Badge>
+                    <Badge variant={c.needsAuth ? 'destructive' : 'default'} className="text-xs">
+                      {c.needsAuth ? 'needs auth' : 'cloud'}
+                    </Badge>
                   </div>
                 ))}
               </div>
