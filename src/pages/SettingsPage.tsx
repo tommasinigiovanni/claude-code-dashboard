@@ -488,6 +488,27 @@ export function SettingsPage() {
           <Separator />
 
           <ImportExportPage />
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Backup</Label>
+            <p className="text-xs text-muted-foreground">
+              {locale === 'it'
+                ? 'Un backup viene creato ad ogni avvio. Ultimi 7 conservati in ~/.claude/dashboard-backups/'
+                : 'A backup is created on each launch. Last 7 kept in ~/.claude/dashboard-backups/'}
+            </p>
+            <Button variant="outline" size="sm" onClick={async () => {
+              try {
+                const result = await invoke<string>('auto_backup')
+                toast.success(`Backup: ${result}`)
+              } catch (e) {
+                toast.error(`${t('common.error')}: ${e}`)
+              }
+            }}>
+              {locale === 'it' ? 'Crea backup ora' : 'Create backup now'}
+            </Button>
+          </div>
         </div>
       </SettingsCard>
 

@@ -1,4 +1,6 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useEffect } from 'react'
+import { invoke } from '@tauri-apps/api/core'
+import { getSshConfig } from '@/hooks/useSshConfig'
 import { useUiStore, type Page } from '@/store/uiStore'
 import { useI18n } from '@/i18n/useI18n'
 import type { TranslationKey } from '@/i18n/translations'
@@ -57,6 +59,26 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { activePage, setActivePage } = useUiStore()
   const { t } = useI18n()
+  const [hasActiveSessions, setHasActiveSessions] = useState(false)
+
+  // Check for active tmux sessions periodically
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const ssh = getSshConfig()
+        if (ssh) {
+          const data = await invoke<[string, boolean, number, string][]>('ssh_tmux_list_sessions', { config: ssh })
+          setHasActiveSessions(data.length > 0)
+        } else {
+          const sessions = await invoke<{ name: string }[]>('tmux_list_sessions')
+          setHasActiveSessions(sessions.length > 0)
+        }
+      } catch { setHasActiveSessions(false) }
+    }
+    check()
+    const interval = setInterval(check, 15000)
+    return () => clearInterval(interval)
+  }, [])
 
   const renderItem = (item: { id: Page; labelKey: TranslationKey; icon: ReactNode }) => (
     <button
@@ -71,7 +93,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
       )}
     >
-      {item.icon}
+      <span className="relative">
+        {item.icon}
+        {item.id === 'launcher' && hasActiveSessions && (
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full" />
+        )}
+      </span>
       {!collapsed && t(item.labelKey)}
     </button>
   )

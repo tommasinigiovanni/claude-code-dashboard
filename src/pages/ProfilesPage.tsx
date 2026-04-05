@@ -26,7 +26,13 @@ interface Profile {
 }
 
 function formatRelativeDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr)
+  // Handle both seconds and milliseconds timestamps
+  let ts = parseInt(dateStr)
+  if (isNaN(ts)) return dateStr
+  // If timestamp is in seconds (< year 2100 in seconds), convert to ms
+  if (ts < 10000000000) ts *= 1000
+  const date = new Date(ts)
+  if (isNaN(date.getTime())) return dateStr
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
@@ -147,7 +153,11 @@ export function ProfilesPage() {
                     <CalendarIcon className="size-3" />
                     <span>{formatRelativeDate(profile.created_at, locale)}</span>
                     <span className="mx-1">·</span>
-                    <span>{new Date(profile.created_at).toLocaleDateString(locale)}</span>
+                    <span>{(() => {
+                      let ts = parseInt(profile.created_at)
+                      if (ts < 10000000000) ts *= 1000
+                      return new Date(ts).toLocaleDateString(locale)
+                    })()}</span>
                   </div>
                 </div>
               </div>

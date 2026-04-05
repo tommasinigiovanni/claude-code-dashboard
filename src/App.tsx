@@ -82,6 +82,11 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const setActivePage = useUiStore((s) => s.setActivePage)
 
+  // Auto-backup on app start
+  useEffect(() => {
+    invoke('auto_backup').catch(() => {})
+  }, [])
+
   // Auto-start Telegram bot if configured
   useEffect(() => {
     const settings = getSettings()
