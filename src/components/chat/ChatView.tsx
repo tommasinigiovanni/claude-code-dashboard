@@ -86,8 +86,17 @@ export function ChatView({ projectPath }: ChatViewProps) {
 
     const startSession = async () => {
       try {
+        // Check for active SSH profile
+        const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+        const sshProfile = dashSettings.activeSshProfile
+          ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
+          : null
+
         const sid = await invoke<string>('chat_start', {
           projectPath: projectPath ?? undefined,
+          sshConfig: sshProfile
+            ? { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null }
+            : null,
         })
         setSessionId(sid)
 

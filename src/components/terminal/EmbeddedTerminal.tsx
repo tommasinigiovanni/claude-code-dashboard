@@ -37,10 +37,20 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
     startedRef.current = true
 
     try {
+      // Check for active SSH profile
+      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+      const sshProfile = dashSettings.activeSshProfile
+        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
+        : null
+      const sshConfig = sshProfile
+        ? { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null }
+        : null
+
       const id = await invoke<string>('terminal_spawn', {
         projectPath: projectPath ?? undefined,
         useTmux: useTmux ?? false,
         tmuxAttachSession: tmuxAttachSession ?? undefined,
+        sshConfig,
       })
       sessionIdRef.current = id
 

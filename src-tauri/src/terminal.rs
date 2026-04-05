@@ -98,6 +98,7 @@ pub async fn terminal_spawn(
     project_path: Option<String>,
     use_tmux: Option<bool>,
     tmux_attach_session: Option<String>,
+    ssh_config: Option<crate::ssh::SshConfig>,
 ) -> Result<String, String> {
     let session_id = uuid::Uuid::new_v4().to_string();
     let pty_system = native_pty_system();
@@ -168,9 +169,36 @@ pub async fn terminal_spawn(
     let sid_clone = session_id.clone();
     let project_path_clone = project_path.clone();
     let tmux_attach = tmux_attach_session.clone();
+    let ssh_cfg = ssh_config.clone();
     std::thread::spawn(move || {
         // Wait for shell prompt
         std::thread::sleep(std::time::Duration::from_millis(500));
+
+        let mut sessions = SESSIONS.lock().unwrap();
+        // If SSH, connect first
+        if let Some(ref cfg) = ssh_cfg {
+            let ssh_cmd = crate::ssh::get_ssh_command(cfg);
+            {
+                let mut s = SESSIONS.lock().unwrap();
+                if let Some(session) = s.get_mut(&sid_clone) {
+                    let _ = session.writer.write_all(format!("{}\n", ssh_cmd).as_bytes());
+                    let _ = session.writer.flush();
+                }
+            }
+            // Wait for SSH connection
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+
+            // cd to project if specified
+            if let Some(ref path) = project_path_clone {
+                let mut s = SESSIONS.lock().unwrap();
+                if let Some(session) = s.get_mut(&sid_clone) {
+                    let _ = session.writer.write_all(format!("cd '{}'\n", path).as_bytes());
+                    let _ = session.writer.flush();
+                }
+                drop(s);
+                std::thread::sleep(std::time::Duration::from_millis(300));
+            }
+        }
 
         let mut sessions = SESSIONS.lock().unwrap();
         if let Some(session) = sessions.get_mut(&sid_clone) {

@@ -5,6 +5,7 @@ mod import_export;
 mod launcher;
 mod logs;
 mod profiles;
+pub mod ssh;
 mod telegram;
 mod terminal;
 mod tray;
@@ -43,6 +44,10 @@ pub fn run() {
             profiles::save_profile,
             profiles::load_profile,
             profiles::delete_profile,
+            ssh::ssh_test_connection,
+            ssh::ssh_read_config,
+            ssh::ssh_write_config,
+            ssh::ssh_list_files,
             telegram::telegram_start_bot,
             telegram::telegram_stop_bot,
             telegram::telegram_bot_status,

@@ -112,6 +112,7 @@ fn detect_waiting_for_input(clean_text: &str) -> bool {
 pub async fn chat_start(
     app: AppHandle,
     project_path: Option<String>,
+    ssh_config: Option<crate::ssh::SshConfig>,
 ) -> Result<String, String> {
     let session_id = uuid::Uuid::new_v4().to_string();
     let pty_system = native_pty_system();
@@ -159,10 +160,36 @@ pub async fn chat_start(
         },
     );
 
-    // Start claude in the PTY after shell is ready
+    // Start claude in the PTY after shell is ready (SSH if configured)
     let sid_for_start = session_id.clone();
+    let ssh_cfg = ssh_config.clone();
+    let project_for_start = project_path.clone();
     std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_millis(500));
+
+        // If SSH, connect first
+        if let Some(ref cfg) = ssh_cfg {
+            let ssh_cmd = crate::ssh::get_ssh_command(cfg);
+            {
+                let mut s = CHAT_SESSIONS.lock().unwrap();
+                if let Some(session) = s.get_mut(&sid_for_start) {
+                    let _ = session.writer.write_all(format!("{}\n", ssh_cmd).as_bytes());
+                    let _ = session.writer.flush();
+                }
+            }
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+
+            // cd to project on remote
+            if let Some(ref path) = project_for_start {
+                let mut s = CHAT_SESSIONS.lock().unwrap();
+                if let Some(session) = s.get_mut(&sid_for_start) {
+                    let _ = session.writer.write_all(format!("cd '{}'\n", path).as_bytes());
+                    let _ = session.writer.flush();
+                }
+                std::thread::sleep(std::time::Duration::from_millis(300));
+            }
+        }
+
         let mut sessions = CHAT_SESSIONS.lock().unwrap();
         if let Some(session) = sessions.get_mut(&sid_for_start) {
             let _ = session.writer.write_all(b"claude\n");

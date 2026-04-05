@@ -14,6 +14,14 @@ export const SETTINGS_KEY = 'claude-dashboard-settings'
 
 export type TerminalApp = 'chat' | 'Terminal' | 'iTerm' | 'Warp' | 'Alacritty' | 'embedded' | 'custom'
 
+export interface SshProfile {
+  name: string
+  host: string
+  port: number
+  user: string
+  keyPath: string
+}
+
 export interface DashboardSettings {
   theme: 'dark' | 'light' | 'system'
   claudePathOverride: string
@@ -24,6 +32,8 @@ export interface DashboardSettings {
   telegramBotToken: string
   telegramChatId: string
   autoApprovePermissions: boolean
+  sshProfiles: SshProfile[]
+  activeSshProfile: string | null // name of active profile, null = local
 }
 
 const defaultSettings: DashboardSettings = {
@@ -36,6 +46,8 @@ const defaultSettings: DashboardSettings = {
   telegramBotToken: '',
   telegramChatId: '',
   autoApprovePermissions: false,
+  sshProfiles: [],
+  activeSshProfile: null,
 }
 
 export function getSettings(): DashboardSettings {
@@ -59,6 +71,124 @@ function applyTheme(theme: 'dark' | 'light' | 'system') {
   } else {
     html.classList.toggle('dark', theme === 'dark')
   }
+}
+
+function SshProfileManager({
+  settings,
+  updateSetting,
+  locale,
+}: {
+  settings: DashboardSettings
+  updateSetting: <K extends keyof DashboardSettings>(key: K, value: DashboardSettings[K]) => void
+  locale: string
+}) {
+  const [showForm, setShowForm] = useState(false)
+  const [name, setName] = useState('')
+  const [host, setHost] = useState('')
+  const [port, setPort] = useState('22')
+  const [user, setUser] = useState('')
+  const [keyPath, setKeyPath] = useState('')
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<string | null>(null)
+
+  const handleSave = () => {
+    if (!name || !host || !user) return
+    const profile: SshProfile = { name, host, port: parseInt(port) || 22, user, keyPath }
+    const profiles = [...settings.sshProfiles.filter((p) => p.name !== name), profile]
+    updateSetting('sshProfiles', profiles)
+    setShowForm(false)
+    setName(''); setHost(''); setPort('22'); setUser(''); setKeyPath('')
+  }
+
+  const handleDelete = (profileName: string) => {
+    updateSetting('sshProfiles', settings.sshProfiles.filter((p) => p.name !== profileName))
+    if (settings.activeSshProfile === profileName) {
+      updateSetting('activeSshProfile', null)
+    }
+  }
+
+  const handleTest = async (profile: SshProfile) => {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const result = await invoke<string>('ssh_test_connection', {
+        config: { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null },
+      })
+      if (result.startsWith('connected:')) {
+        setTestResult(`✅ ${locale === 'it' ? 'Connesso' : 'Connected'} — Claude ${result.split(':')[1]}`)
+      } else if (result === 'connected_no_claude') {
+        setTestResult(`⚠️ ${locale === 'it' ? 'Connesso ma Claude Code non trovato' : 'Connected but Claude Code not found'}`)
+      }
+    } catch (e) {
+      setTestResult(`❌ ${e}`)
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {settings.sshProfiles.map((p) => (
+        <div key={p.name} className="flex items-center justify-between rounded-lg border border-border p-3">
+          <div>
+            <span className="font-medium text-sm">{p.name}</span>
+            <p className="text-xs text-muted-foreground font-mono">{p.user}@{p.host}:{p.port}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => handleTest(p)} disabled={testing}>
+              {testing ? '...' : locale === 'it' ? 'Test' : 'Test'}
+            </Button>
+            <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(p.name)}>
+              ×
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      {testResult && (
+        <p className="text-xs px-1">{testResult}</p>
+      )}
+
+      {showForm ? (
+        <div className="space-y-2 rounded-lg border border-border p-4">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">{locale === 'it' ? 'Nome' : 'Name'}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="my-vm" className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs">Host</Label>
+              <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="192.168.1.100" className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs">{locale === 'it' ? 'Utente' : 'User'}</Label>
+              <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder="root" className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs">{locale === 'it' ? 'Porta' : 'Port'}</Label>
+              <Input value={port} onChange={(e) => setPort(e.target.value)} placeholder="22" className="h-8 text-sm" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">{locale === 'it' ? 'Chiave SSH (opzionale)' : 'SSH Key (optional)'}</Label>
+            <Input value={keyPath} onChange={(e) => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="h-8 text-sm" />
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSave} disabled={!name || !host || !user}>
+              {locale === 'it' ? 'Salva' : 'Save'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>
+              {locale === 'it' ? 'Annulla' : 'Cancel'}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+          + {locale === 'it' ? 'Aggiungi profilo SSH' : 'Add SSH profile'}
+        </Button>
+      )}
+    </div>
+  )
 }
 
 function TelegramBotControls({ settings, locale }: { settings: DashboardSettings; locale: string }) {
@@ -249,6 +379,39 @@ export function SettingsPage() {
           checked={settings.useTmux}
           onCheckedChange={(checked) => updateSetting('useTmux', !!checked)}
         />
+      </div>
+
+      {/* SSH Remote */}
+      <div className="space-y-4 mb-8">
+        <Label>🖥️ SSH Remote</Label>
+        <p className="text-xs text-muted-foreground">
+          {locale === 'it'
+            ? 'Connettiti a una VM remota dove Claude Code è installato. Il terminale e la chat lavoreranno sulla macchina remota.'
+            : 'Connect to a remote VM where Claude Code is installed. Terminal and chat will work on the remote machine.'}
+        </p>
+
+        {/* Active profile selector */}
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={!settings.activeSshProfile ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => updateSetting('activeSshProfile', null)}
+          >
+            💻 {locale === 'it' ? 'Locale' : 'Local'}
+          </Button>
+          {settings.sshProfiles.map((p) => (
+            <Button
+              key={p.name}
+              variant={settings.activeSshProfile === p.name ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => updateSetting('activeSshProfile', p.name)}
+            >
+              🖥️ {p.name}
+            </Button>
+          ))}
+        </div>
+
+        <SshProfileManager settings={settings} updateSetting={updateSetting} locale={locale} />
       </div>
 
       <Separator className="mb-8" />
