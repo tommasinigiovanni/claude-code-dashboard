@@ -49,11 +49,6 @@ export function ContextSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent transition-colors">
-        {isRemote && (
-          <Badge variant="outline" className="text-xs text-primary border-primary/30">
-            🖥️ {sshProfile.name}
-          </Badge>
-        )}
         <Badge variant={mode === 'global' ? 'default' : 'secondary'} className="text-xs">
           {mode === 'global' ? 'G' : 'P'}
         </Badge>

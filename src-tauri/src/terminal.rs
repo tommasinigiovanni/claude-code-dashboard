@@ -43,7 +43,7 @@ pub async fn tmux_list_sessions() -> Result<Vec<TmuxSession>, String> {
             let stdout = String::from_utf8_lossy(&out.stdout);
             let sessions: Vec<TmuxSession> = stdout
                 .lines()
-                .filter(|l| l.starts_with("claude-"))
+                .filter(|l| !l.is_empty())
                 .filter_map(|line| {
                     let parts: Vec<&str> = line.splitn(4, '|').collect();
                     if parts.len() >= 4 {
@@ -213,29 +213,33 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // For SSH: create script on remote, then execute
-                    let script_cmds = format!(
-                        "cat > /tmp/tmux-{s}.sh << 'TMUXEOF'\n\
-#!/bin/bash\n\
-S={s}\n\
-tmux has-session -t $S 2>/dev/null && tmux attach-session -t $S && exit 0\n\
-tmux new-session -d -s $S\n\
-tmux split-window -t $S -v -p 30\n\
-tmux select-pane -t $S:0.0\n\
-tmux send-keys -t $S:0.0 'claude' Enter\n\
-tmux set -t $S mouse on\n\
-tmux set -t $S pane-border-style 'fg=colour240'\n\
-tmux set -t $S pane-active-border-style 'fg=colour141,bold'\n\
-tmux set -t $S pane-border-lines heavy\n\
-tmux set -t $S status-style 'fg=colour245,bg=colour236'\n\
-tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'\n\
-tmux select-pane -t $S:0.0\n\
-tmux attach-session -t $S\n\
-TMUXEOF\n\
-chmod +x /tmp/tmux-{s}.sh && /tmp/tmux-{s}.sh\n",
-                        s = sess_name
-                    );
-                    script_cmds
+                    // For SSH: send tmux commands step by step via writer
+                    // Drop the lock, send commands with delays
+                    drop(sessions);
+
+                    let commands = vec![
+                        format!("tmux new-session -d -s {}", sess_name),
+                        format!("tmux split-window -t {} -v -p 30", sess_name),
+                        format!("tmux select-pane -t {}:0.0", sess_name),
+                        format!("tmux send-keys -t {}:0.0 claude Enter", sess_name),
+                        format!("tmux set -t {} mouse on", sess_name),
+                        format!("tmux set -t {} pane-border-style 'fg=colour240'", sess_name),
+                        format!("tmux set -t {} pane-active-border-style 'fg=colour141,bold'", sess_name),
+                        format!("tmux set -t {} pane-border-lines heavy", sess_name),
+                        format!("tmux select-pane -t {}:0.1 -P 'fg=colour46,bg=colour16'", sess_name),
+                        format!("tmux select-pane -t {}:0.0", sess_name),
+                        format!("tmux attach-session -t {}", sess_name),
+                    ];
+
+                    for cmd in commands {
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                        let mut s = SESSIONS.lock().unwrap();
+                        if let Some(session) = s.get_mut(&sid_clone) {
+                            let _ = session.writer.write_all(format!("{}\n", cmd).as_bytes());
+                            let _ = session.writer.flush();
+                        }
+                    }
+                    return; // Already sent everything
                 } else {
                     // Local: check with local command
                     let exists = std::process::Command::new("tmux")
