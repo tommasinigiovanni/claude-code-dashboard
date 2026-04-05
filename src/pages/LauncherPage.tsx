@@ -8,6 +8,25 @@ import { getSettings } from '@/pages/SettingsPage'
 import { EmbeddedTerminal } from '@/components/terminal/EmbeddedTerminal'
 import { ChatView } from '@/components/chat/ChatView'
 import { useI18n } from '@/i18n/useI18n'
+import { Input } from '@/components/ui/input'
+
+function getSshConfig() {
+  const s = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+  const profile = s.activeSshProfile
+    ? (s.sshProfiles || []).find((p: { name: string }) => p.name === s.activeSshProfile)
+    : null
+  if (!profile) return null
+  return { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null }
+}
+
+async function fetchTmuxSessions(): Promise<TmuxSession[]> {
+  const ssh = getSshConfig()
+  if (ssh) {
+    const data = await invoke<[string, boolean, number, string][]>('ssh_tmux_list_sessions', { config: ssh })
+    return data.map(([name, attached, windows, created]) => ({ name, attached, windows, created }))
+  }
+  return invoke<TmuxSession[]>('tmux_list_sessions')
+}
 
 interface TmuxSession {
   name: string
@@ -21,7 +40,7 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
   const [sessions, setSessions] = useState<TmuxSession[]>([])
 
   useEffect(() => {
-    invoke<TmuxSession[]>('tmux_list_sessions').then(setSessions).catch(() => {})
+    fetchTmuxSessions().then(setSessions).catch(() => {})
   }, [])
 
   const handleKill = async (name: string) => {
@@ -74,7 +93,7 @@ function TmuxSessionTabs({
 
   useEffect(() => {
     const load = () => {
-      invoke<TmuxSession[]>('tmux_list_sessions').then(setSessions).catch(() => {})
+      fetchTmuxSessions().then(setSessions).catch(() => {})
     }
     load()
     const interval = setInterval(load, 3000)
@@ -185,7 +204,17 @@ export function LauncherPage() {
     }
   }
 
+  const isRemote = !!getSshConfig()
+  const [remotePathInput, setRemotePathInput] = useState('')
+
   const handleSelectAndLaunch = async () => {
+    if (isRemote) {
+      // For SSH, use the text input
+      if (remotePathInput.trim()) {
+        await handleLaunch(remotePathInput.trim())
+      }
+      return
+    }
     try {
       const selected = await invoke<string | null>('pick_directory')
       if (selected) {
@@ -282,11 +311,35 @@ export function LauncherPage() {
           <Button onClick={() => handleLaunch()} disabled={!claudeInstalled}>
             {t('launcher.launch')} {isEmbedded ? `(${t('launcher.embeddedTerminal')})` : ''}
           </Button>
-          <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled}>
-            {t('launcher.selectAndLaunch')}
-          </Button>
+          {isRemote ? (
+            <div className="flex gap-2 flex-1">
+              <Input
+                value={remotePathInput}
+                onChange={(e) => setRemotePathInput(e.target.value)}
+                placeholder="/home/user/project"
+                className="flex-1 h-9"
+                onKeyDown={(e) => e.key === 'Enter' && handleSelectAndLaunch()}
+              />
+              <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled || !remotePathInput.trim()}>
+                ▶
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled}>
+              {t('launcher.selectAndLaunch')}
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* SSH indicator */}
+      {isRemote && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 mb-6 flex items-center gap-2">
+          <span className="text-sm">🖥️</span>
+          <span className="text-sm font-medium">{getSshConfig()?.name}</span>
+          <span className="text-xs text-muted-foreground">({getSshConfig()?.user}@{getSshConfig()?.host})</span>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 mb-6">

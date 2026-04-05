@@ -20,7 +20,19 @@ export function HealthPage() {
   const runCheck = async () => {
     setLoading(true)
     try {
-      const data = await invoke<[string, boolean, string][]>('health_check_mcp')
+      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+      const sshProfile = dashSettings.activeSshProfile
+        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
+        : null
+
+      let data: [string, boolean, string][]
+      if (sshProfile) {
+        data = await invoke<[string, boolean, string][]>('ssh_health_check_mcp', {
+          config: { name: sshProfile.name, host: sshProfile.host, port: sshProfile.port, user: sshProfile.user, key_path: sshProfile.keyPath || null },
+        })
+      } else {
+        data = await invoke<[string, boolean, string][]>('health_check_mcp')
+      }
       setResults(data.map(([name, connected, status]) => ({ name, connected, status })))
       setHasRun(true)
     } catch (e) {

@@ -303,6 +303,93 @@ tmux list-sessions -F '#{session_name}|#{session_attached}|#{session_windows}|#{
     }))
 }
 
+#[tauri::command]
+pub async fn ssh_health_check_mcp(config: SshConfig) -> Result<Vec<(String, bool, String)>, String> {
+    let mut args = build_ssh_args(&config);
+    // Run claude --print on remote, read init event for MCP status
+    args.push("echo 'ok' | claude --print --output-format stream-json --verbose 2>&1 | head -100".to_string());
+
+    let output = Command::new("ssh")
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("SSH error: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut results = Vec::new();
+
+    for line in stdout.lines() {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
+            if val.get("type").and_then(|t| t.as_str()) == Some("system")
+                && val.get("subtype").and_then(|t| t.as_str()) == Some("init")
+            {
+                if let Some(servers) = val.get("mcp_servers").and_then(|s| s.as_array()) {
+                    for server in servers {
+                        let name = server.get("name").and_then(|n| n.as_str()).unwrap_or("unknown").to_string();
+                        let status = server.get("status").and_then(|s| s.as_str()).unwrap_or("unknown").to_string();
+                        let connected = status == "connected";
+                        results.push((name, connected, status));
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+#[tauri::command]
+pub async fn ssh_tmux_list_sessions(config: SshConfig) -> Result<Vec<(String, bool, u32, String)>, String> {
+    let mut args = build_ssh_args(&config);
+    args.push("tmux list-sessions -F '#{session_name}|#{session_attached}|#{session_windows}|#{session_created_string}' 2>/dev/null || echo ''".to_string());
+
+    let output = Command::new("ssh")
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("SSH error: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let sessions: Vec<(String, bool, u32, String)> = stdout.lines()
+        .filter(|l| !l.is_empty() && l.contains('|'))
+        .filter_map(|line| {
+            let parts: Vec<&str> = line.splitn(4, '|').collect();
+            if parts.len() >= 4 {
+                Some((
+                    parts[0].to_string(),
+                    parts[1] == "1",
+                    parts[2].parse().unwrap_or(1),
+                    parts[3].to_string(),
+                ))
+            } else { None }
+        })
+        .collect();
+
+    Ok(sessions)
+}
+
+#[tauri::command]
+pub async fn ssh_list_dirs(config: SshConfig, base_path: String) -> Result<Vec<String>, String> {
+    let mut args = build_ssh_args(&config);
+    args.push(format!(
+        "find '{}' -maxdepth 2 -type d -name '.git' 2>/dev/null | sed 's/\\.git$//' | head -20",
+        base_path
+    ));
+
+    let output = Command::new("ssh")
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("SSH error: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    Ok(stdout.lines().filter(|l| !l.is_empty()).map(|l| l.to_string()).collect())
+}
+
 /// Returns the SSH command string for use in PTY (terminal/chat)
 pub fn get_ssh_command(config: &SshConfig) -> String {
     let mut parts = vec!["ssh".to_string()];
