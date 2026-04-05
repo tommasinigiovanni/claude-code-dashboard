@@ -213,10 +213,10 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // For SSH: check remote tmux, use inline commands
+                    // For SSH: same split setup as local but via inline script
                     format!(
-                        "tmux has-session -t {} 2>/dev/null && tmux attach-session -t {} || (tmux new-session -d -s {} && tmux split-window -t {} -v -p 30 && tmux send-keys -t {}:0.0 'claude' Enter && tmux set -t {} mouse on && tmux attach-session -t {})\n",
-                        sess_name, sess_name, sess_name, sess_name, sess_name, sess_name, sess_name
+                        "bash -c 'S={s}; tmux has-session -t $S 2>/dev/null && tmux attach-session -t $S || (tmux new-session -d -s $S && tmux split-window -t $S -v -p 30 && tmux select-pane -t $S:0.0 && tmux send-keys -t $S:0.0 claude Enter && tmux set -t $S mouse on && tmux set -t $S pane-border-style \"fg=colour240\" && tmux set -t $S pane-active-border-style \"fg=colour141,bold\" && tmux set -t $S pane-border-lines heavy && tmux set -t $S status-style \"fg=colour245,bg=colour236\" && tmux set -t $S status-left \"#[fg=colour141,bold] $S \" && tmux select-pane -t $S:0.1 -P \"fg=colour46,bg=colour16\" && tmux select-pane -t $S:0.0 && tmux attach-session -t $S)'\n",
+                        s = sess_name
                     )
                 } else {
                     // Local: check with local command
