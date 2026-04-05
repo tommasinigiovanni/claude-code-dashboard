@@ -113,13 +113,39 @@ function getConfigForScope(state: ConfigState, scope: ConfigScope): ClaudeConfig
   return state.projectConfig ?? {}
 }
 
-function getWriteArgs(state: ConfigState, scope: ConfigScope, config: ClaudeConfig) {
-  return {
-    scope,
-    ...(scope === 'project' ? { projectPath: state.projectPath } : {}),
-    config,
+async function writeConfig(state: ConfigState, scope: ConfigScope, config: ClaudeConfig) {
+  const sshConfig = getSshConfig()
+  if (sshConfig) {
+    // Remote: serialize config and write via SSH
+    const remotePath = scope === 'project' && state.projectPath
+      ? `${state.projectPath}/.claude/settings.local.json`
+      : '~/.claude/settings.json'
+
+    // Read existing remote config, merge, write back
+    const existingJson = await invoke<string>('ssh_read_config', { config: sshConfig, remotePath })
+    const existing = JSON.parse(existingJson || '{}')
+
+    if (config.mcpServers !== undefined) existing.mcpServers = config.mcpServers
+    if (config.agents !== undefined) existing.agents = config.agents
+    if (config.skills !== undefined) existing.skills = config.skills
+
+    await invoke('ssh_write_config', {
+      config: sshConfig,
+      remotePath,
+      content: JSON.stringify(existing, null, 2),
+    })
+  } else {
+    // Local
+    const args = {
+      scope,
+      ...(scope === 'project' ? { projectPath: state.projectPath } : {}),
+      config,
+    }
+    await invoke('write_config', args)
   }
 }
+
+// getWriteArgs removed — replaced by writeConfig() which handles SSH
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
   mode: 'global',
@@ -233,7 +259,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const state = get()
     const config = { ...getConfigForScope(state, scope) }
     config.mcpServers = { ...config.mcpServers, [id]: server }
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 
@@ -241,7 +267,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const state = get()
     const config = { ...getConfigForScope(state, scope) }
     config.mcpServers = { ...config.mcpServers, [id]: server }
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 
@@ -251,7 +277,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const servers = { ...config.mcpServers }
     delete servers[id]
     config.mcpServers = servers
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 
@@ -259,7 +285,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const state = get()
     const config = { ...getConfigForScope(state, scope) }
     config.agents = { ...config.agents, [id]: agent }
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 
@@ -267,7 +293,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const state = get()
     const config = { ...getConfigForScope(state, scope) }
     config.agents = { ...config.agents, [id]: agent }
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 
@@ -277,7 +303,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const agents = { ...config.agents }
     delete agents[id]
     config.agents = agents
-    await invoke('write_config', getWriteArgs(state, scope, config))
+    await writeConfig(state, scope, config)
     await get().loadConfigs()
   },
 }))
