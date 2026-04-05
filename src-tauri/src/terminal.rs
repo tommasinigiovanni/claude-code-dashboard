@@ -235,10 +235,11 @@ pub async fn terminal_spawn(
                         "tmux select-pane -t $S:0.0".to_string(),
                         "tmux attach -t $S".to_string(),
                     ];
-                    // Use printf which works in both bash and fish
+                    // Use bash -c for printf (fish doesn't interpret \n in single quotes)
+                    // Then execute the script separately so tmux attach gets the TTY
                     let escaped = lines.join("\\n");
                     format!(
-                        "printf '{}\\n' > {} ; chmod +x {} ; {}\n",
+                        "bash -c \"printf '{}\\n' > {} && chmod +x {}\"; {}\n",
                         escaped, script_path, script_path, script_path
                     )
                 } else {
