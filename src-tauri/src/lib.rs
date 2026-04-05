@@ -45,6 +45,7 @@ pub fn run() {
             profiles::load_profile,
             profiles::delete_profile,
             ssh::ssh_test_connection,
+            ssh::ssh_read_dashboard_data,
             ssh::ssh_read_config,
             ssh::ssh_write_config,
             ssh::ssh_list_files,

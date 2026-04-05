@@ -158,7 +158,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         : null
 
       if (sshProfile) {
-        // SSH mode: read config from remote machine
+        // SSH mode: read all data from remote machine in one call
         const sshConfig = {
           name: sshProfile.name,
           host: sshProfile.host,
@@ -167,29 +167,22 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
           key_path: sshProfile.keyPath || null,
         }
 
-        const remoteSettingsJson = await invoke<string>('ssh_read_config', {
+        const remoteData = await invoke<DashboardData & { tmuxSessions?: unknown[] }>('ssh_read_dashboard_data', {
           config: sshConfig,
-          remotePath: '~/.claude/settings.json',
         })
 
-        const remoteSettings = JSON.parse(remoteSettingsJson || '{}')
-        const globalConfig: ClaudeConfig = {
-          mcpServers: remoteSettings.mcpServers,
-          skills: remoteSettings.skills,
-          agents: remoteSettings.agents,
-        }
-
+        const globalConfig = remoteData.config || {}
         const merged = mergeConfigs(globalConfig, null, 'global')
 
         set({
           globalConfig,
           projectConfig: null,
           ...merged,
-          cloudConnectors: [],
-          installedPlugins: [],
-          localSkills: [],
-          localAgents: [],
-          recentProjects: [],
+          cloudConnectors: remoteData.cloudConnectors || [],
+          installedPlugins: remoteData.installedPlugins || [],
+          localSkills: remoteData.localSkills || [],
+          localAgents: remoteData.localAgents || [],
+          recentProjects: remoteData.recentProjects || [],
           isLoading: false,
         })
         return

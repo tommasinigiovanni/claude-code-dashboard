@@ -124,6 +124,185 @@ pub async fn ssh_list_files(config: SshConfig, remote_dir: String, pattern: Stri
     }
 }
 
+#[tauri::command]
+pub async fn ssh_read_dashboard_data(config: SshConfig) -> Result<serde_json::Value, String> {
+    // Read everything we need in a single SSH command
+    let mut args = build_ssh_args(&config);
+    args.push(r#"
+cat ~/.claude/settings.json 2>/dev/null || echo '{}';
+echo '___SEPARATOR___';
+cat ~/.claude/plugins/installed_plugins.json 2>/dev/null || echo '{"plugins":{}}';
+echo '___SEPARATOR___';
+cat ~/.claude/mcp-needs-auth-cache.json 2>/dev/null || echo '{}';
+echo '___SEPARATOR___';
+find ~/.claude/agents -name '*.md' -exec echo '{}' \; 2>/dev/null;
+echo '___SEPARATOR___';
+find ~/.claude/skills -name 'SKILL.md' -exec echo '{}' \; 2>/dev/null;
+echo '___SEPARATOR___';
+find ~/.claude/commands -name '*.md' -exec echo '{}' \; 2>/dev/null;
+echo '___SEPARATOR___';
+ls -1t ~/.claude/projects/ 2>/dev/null | head -15;
+echo '___SEPARATOR___';
+tmux list-sessions -F '#{session_name}|#{session_attached}|#{session_windows}|#{session_created_string}' 2>/dev/null || echo '';
+"#.to_string());
+
+    let output = Command::new("ssh")
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("SSH error: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!("SSH error: {}", String::from_utf8_lossy(&output.stderr)));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parts: Vec<&str> = stdout.split("___SEPARATOR___").collect();
+
+    // Parse settings
+    let settings: serde_json::Value = parts.first()
+        .and_then(|s| serde_json::from_str(s.trim()).ok())
+        .unwrap_or(serde_json::Value::Object(Default::default()));
+
+    // Parse installed plugins
+    let installed_plugins_raw: serde_json::Value = parts.get(1)
+        .and_then(|s| serde_json::from_str(s.trim()).ok())
+        .unwrap_or(serde_json::Value::Object(Default::default()));
+
+    // Parse enabled plugins from settings
+    let enabled_plugins = settings.get("enabledPlugins")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut plugins = Vec::new();
+    if let Some(obj) = installed_plugins_raw.get("plugins").and_then(|v| v.as_object()) {
+        for (full_name, installs) in obj {
+            if let Some(arr) = installs.as_array() {
+                for install in arr {
+                    let scope = install.get("scope").and_then(|v| v.as_str()).unwrap_or("user");
+                    let version = install.get("version").and_then(|v| v.as_str()).unwrap_or("unknown");
+                    let install_path = install.get("installPath").and_then(|v| v.as_str()).unwrap_or("");
+                    let name_parts: Vec<&str> = full_name.splitn(2, '@').collect();
+                    let name = name_parts[0];
+                    let marketplace = name_parts.get(1).unwrap_or(&"unknown");
+                    let enabled = enabled_plugins.get(full_name)
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false);
+
+                    plugins.push(serde_json::json!({
+                        "name": name,
+                        "marketplace": marketplace,
+                        "scope": scope,
+                        "version": version,
+                        "installPath": install_path,
+                        "enabled": enabled,
+                    }));
+                }
+            }
+        }
+    }
+
+    // Parse cloud connectors
+    let cloud_raw: serde_json::Value = parts.get(2)
+        .and_then(|s| serde_json::from_str(s.trim()).ok())
+        .unwrap_or(serde_json::Value::Object(Default::default()));
+    let cloud_connectors: Vec<serde_json::Value> = cloud_raw.as_object()
+        .map(|obj| obj.keys().map(|k| serde_json::json!({"name": k, "needsAuth": true})).collect())
+        .unwrap_or_default();
+
+    // Parse agents
+    let agents: Vec<serde_json::Value> = parts.get(3)
+        .map(|s| s.trim().lines()
+            .filter(|l| !l.is_empty())
+            .map(|path| {
+                let name = std::path::Path::new(path)
+                    .file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
+                serde_json::json!({"name": name, "description": "", "plugin": "custom", "path": path})
+            })
+            .collect())
+        .unwrap_or_default();
+
+    // Parse skills
+    let skills: Vec<serde_json::Value> = parts.get(4)
+        .map(|s| s.trim().lines()
+            .filter(|l| !l.is_empty())
+            .map(|path| {
+                let dir_name = std::path::Path::new(path)
+                    .parent()
+                    .and_then(|p| p.file_name())
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
+                serde_json::json!({"name": dir_name, "description": "", "plugin": "custom", "path": path})
+            })
+            .collect())
+        .unwrap_or_default();
+
+    // Parse commands
+    let commands: Vec<serde_json::Value> = parts.get(5)
+        .map(|s| s.trim().lines()
+            .filter(|l| !l.is_empty())
+            .map(|path| {
+                let name = std::path::Path::new(path)
+                    .file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
+                serde_json::json!({"name": name, "description": "", "plugin": "command", "path": path})
+            })
+            .collect())
+        .unwrap_or_default();
+
+    // Parse recent projects
+    let recent_projects: Vec<String> = parts.get(6)
+        .map(|s| s.trim().lines()
+            .filter(|l| !l.is_empty())
+            .map(|l| l.to_string())
+            .collect())
+        .unwrap_or_default();
+
+    // Parse tmux sessions
+    let tmux_sessions: Vec<serde_json::Value> = parts.get(7)
+        .map(|s| s.trim().lines()
+            .filter(|l| !l.is_empty() && l.contains('|'))
+            .filter_map(|line| {
+                let p: Vec<&str> = line.splitn(4, '|').collect();
+                if p.len() >= 4 {
+                    Some(serde_json::json!({
+                        "name": p[0],
+                        "attached": p[1] == "1",
+                        "windows": p[2].parse::<u32>().unwrap_or(1),
+                        "created": p[3],
+                    }))
+                } else { None }
+            })
+            .collect())
+        .unwrap_or_default();
+
+    // Combine all skills + commands
+    let mut all_skills = skills;
+    all_skills.extend(commands);
+
+    Ok(serde_json::json!({
+        "config": {
+            "mcpServers": settings.get("mcpServers"),
+            "skills": settings.get("skills"),
+            "agents": settings.get("agents"),
+        },
+        "cloudConnectors": cloud_connectors,
+        "installedPlugins": plugins,
+        "localSkills": all_skills,
+        "localAgents": agents,
+        "recentProjects": recent_projects,
+        "tmuxSessions": tmux_sessions,
+    }))
+}
+
 /// Returns the SSH command string for use in PTY (terminal/chat)
 pub fn get_ssh_command(config: &SshConfig) -> String {
     let mut parts = vec!["ssh".to_string()];
