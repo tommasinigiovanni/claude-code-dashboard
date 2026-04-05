@@ -151,7 +151,51 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     set({ isLoading: true, error: null })
 
     try {
-      // Load full dashboard data (global config + cloud connectors + plugins)
+      // Check if SSH is active
+      const dashSettings = JSON.parse(localStorage.getItem('claude-dashboard-settings') || '{}')
+      const sshProfile = dashSettings.activeSshProfile
+        ? (dashSettings.sshProfiles || []).find((p: { name: string }) => p.name === dashSettings.activeSshProfile)
+        : null
+
+      if (sshProfile) {
+        // SSH mode: read config from remote machine
+        const sshConfig = {
+          name: sshProfile.name,
+          host: sshProfile.host,
+          port: sshProfile.port,
+          user: sshProfile.user,
+          key_path: sshProfile.keyPath || null,
+        }
+
+        const remoteSettingsJson = await invoke<string>('ssh_read_config', {
+          config: sshConfig,
+          remotePath: '~/.claude/settings.json',
+        })
+
+        const remoteSettings = JSON.parse(remoteSettingsJson || '{}')
+        const globalConfig: ClaudeConfig = {
+          mcpServers: remoteSettings.mcpServers,
+          skills: remoteSettings.skills,
+          agents: remoteSettings.agents,
+        }
+
+        const merged = mergeConfigs(globalConfig, null, 'global')
+
+        set({
+          globalConfig,
+          projectConfig: null,
+          ...merged,
+          cloudConnectors: [],
+          installedPlugins: [],
+          localSkills: [],
+          localAgents: [],
+          recentProjects: [],
+          isLoading: false,
+        })
+        return
+      }
+
+      // Local mode: load full dashboard data
       const dashboardData = await invoke<DashboardData>('read_dashboard_data')
 
       const globalConfig = dashboardData.config
@@ -174,7 +218,6 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             'read_project_extras',
             { projectPath }
           )
-          // Add project skills with "project" as plugin label
           allLocalSkills = [
             ...allLocalSkills,
             ...projectSkills.map((s) => ({ ...s, plugin: 'project' })),

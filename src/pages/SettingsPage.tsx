@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { useI18n } from '@/i18n/useI18n'
 import { ImportExportPage } from '@/pages/ImportExportPage'
+import { useConfigStore } from '@/store/configStore'
 
 export const SETTINGS_KEY = 'claude-dashboard-settings'
 
@@ -260,6 +261,7 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
 export function SettingsPage() {
   const { t, locale } = useI18n()
   const [settings, setSettings] = useState<DashboardSettings>(getSettings)
+  const loadConfigs = useConfigStore((s) => s.loadConfigs)
 
   useEffect(() => {
     applyTheme(settings.theme)
@@ -270,6 +272,11 @@ export function SettingsPage() {
     setSettings(updated)
     saveSettings(updated)
     toast.success(t('settings.saved'))
+
+    // Reload configs when SSH profile changes
+    if (key === 'activeSshProfile') {
+      setTimeout(() => loadConfigs(), 100)
+    }
   }
 
   return (
