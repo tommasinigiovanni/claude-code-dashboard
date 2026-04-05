@@ -218,20 +218,26 @@ pub async fn terminal_spawn(
                     let base_name = sess_name.strip_prefix("claude-").unwrap_or(&sess_name).to_string();
                     let script_path = format!("/tmp/ccd-tmux-{}.sh", base_name);
 
+                    // Use a different approach: create session and attach first,
+                    // then split AFTER attaching (tmux needs a real terminal size)
+                    // The split and setup happen via tmux send-keys to itself
                     let script_content = format!(
                         "#!/bin/sh\n\
 S={sess}\n\
 B={base}\n\
 tmux has-session -t \"$S\" 2>/dev/null && exec tmux attach -t \"$S\"\n\
 tmux has-session -t \"$B\" 2>/dev/null && exec tmux attach -t \"$B\"\n\
+# Create and attach — split happens after attach via hook\n\
 tmux new-session -d -s \"$S\"\n\
-tmux split-window -t \"$S\" -v -p 30\n\
-tmux select-pane -t \"$S\":0.0\n\
-tmux send-keys -t \"$S\":0.0 claude Enter\n\
-tmux set -t \"$S\" mouse on\n\
-tmux set -t \"$S\" pane-border-lines heavy\n\
-tmux select-pane -t \"$S\":0.1 -P 'fg=colour46,bg=colour16'\n\
-tmux select-pane -t \"$S\":0.0\n\
+# Set a hook that fires after we attach, doing the split\n\
+tmux set-hook -t \"$S\" client-attached 'split-window -v -p 30 ; \
+select-pane -t 0 ; \
+send-keys -t 0 claude Enter ; \
+set mouse on ; \
+set pane-border-lines heavy ; \
+select-pane -t 1 -P \"fg=colour46,bg=colour16\" ; \
+select-pane -t 0 ; \
+set-hook -u client-attached'\n\
 tmux attach -t \"$S\"\n",
                         sess = sess_name,
                         base = base_name,
