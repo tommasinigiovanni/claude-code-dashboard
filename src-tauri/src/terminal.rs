@@ -213,35 +213,62 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // Remote: use printf to create script (works in fish+bash)
-                    // Use session name WITHOUT claude- prefix if a session
-                    // with the base name already exists
+                    // Remote: create script via SSH command (not via PTY)
+                    // This avoids all fish/bash/quoting issues
                     let base_name = sess_name.strip_prefix("claude-").unwrap_or(&sess_name).to_string();
                     let script_path = format!("/tmp/ccd-tmux-{}.sh", base_name);
-                    let lines = vec![
-                        "#!/bin/sh".to_string(),
-                        format!("S={}", sess_name),
-                        format!("B={}", base_name),
-                        // Check both names: claude-xxx and xxx
-                        "tmux has-session -t $S 2>/dev/null && exec tmux attach -t $S".to_string(),
-                        "tmux has-session -t $B 2>/dev/null && exec tmux attach -t $B".to_string(),
-                        "tmux new-session -d -s $S".to_string(),
-                        "tmux split-window -t $S -v -p 30".to_string(),
-                        "tmux select-pane -t $S:0.0".to_string(),
-                        "tmux send-keys -t $S:0.0 claude Enter".to_string(),
-                        "tmux set -t $S mouse on".to_string(),
-                        "tmux set -t $S pane-border-lines heavy".to_string(),
-                        "tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'".to_string(),
-                        "tmux select-pane -t $S:0.0".to_string(),
-                        "tmux attach -t $S".to_string(),
-                    ];
-                    // Use bash -c for printf (fish doesn't interpret \n in single quotes)
-                    // Then execute the script separately so tmux attach gets the TTY
-                    let escaped = lines.join("\\n");
-                    format!(
-                        "bash -c \"printf '{}\\n' > {} && chmod +x {}\"; {}\n",
-                        escaped, script_path, script_path, script_path
-                    )
+
+                    let script_content = format!(
+                        "#!/bin/sh\n\
+S={sess}\n\
+B={base}\n\
+tmux has-session -t \"$S\" 2>/dev/null && exec tmux attach -t \"$S\"\n\
+tmux has-session -t \"$B\" 2>/dev/null && exec tmux attach -t \"$B\"\n\
+tmux new-session -d -s \"$S\"\n\
+tmux split-window -t \"$S\" -v -p 30\n\
+tmux select-pane -t \"$S\":0.0\n\
+tmux send-keys -t \"$S\":0.0 claude Enter\n\
+tmux set -t \"$S\" mouse on\n\
+tmux set -t \"$S\" pane-border-lines heavy\n\
+tmux select-pane -t \"$S\":0.1 -P 'fg=colour46,bg=colour16'\n\
+tmux select-pane -t \"$S\":0.0\n\
+tmux attach -t \"$S\"\n",
+                        sess = sess_name,
+                        base = base_name,
+                    );
+
+                    // Write script to remote via SSH (bypasses PTY/fish)
+                    if let Some(ref cfg) = ssh_cfg {
+                        let mut ssh_args = vec![
+                            "ssh".to_string(),
+                            "-o".to_string(), "StrictHostKeyChecking=no".to_string(),
+                            "-p".to_string(), cfg.port.to_string(),
+                        ];
+                        if let Some(ref key) = cfg.key_path {
+                            ssh_args.push("-i".to_string());
+                            ssh_args.push(key.clone());
+                        }
+                        ssh_args.push(format!("{}@{}", cfg.user, cfg.host));
+                        ssh_args.push(format!("cat > {} && chmod +x {}", script_path, script_path));
+
+                        let mut child = std::process::Command::new(&ssh_args[0])
+                            .args(&ssh_args[1..])
+                            .stdin(std::process::Stdio::piped())
+                            .spawn()
+                            .ok();
+
+                        if let Some(ref mut c) = child {
+                            if let Some(mut stdin) = c.stdin.take() {
+                                use std::io::Write;
+                                let _ = stdin.write_all(script_content.as_bytes());
+                                drop(stdin);
+                            }
+                            let _ = c.wait();
+                        }
+                    }
+
+                    // Now just execute the script via PTY
+                    format!("{}\n", script_path)
                 } else {
                     // Local: check with local command
                     let exists = std::process::Command::new("tmux")
