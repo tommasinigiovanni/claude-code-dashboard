@@ -10,6 +10,11 @@ import { toast } from 'sonner'
 import { useI18n } from '@/i18n/useI18n'
 import { ImportExportPage } from '@/pages/ImportExportPage'
 import { useConfigStore } from '@/store/configStore'
+import {
+  PaletteIcon, RocketIcon, GlobeIcon, MonitorIcon, MessageSquareIcon,
+  TerminalIcon, SmartphoneIcon, KeyIcon, TrashIcon, ChevronDownIcon,
+  ChevronUpIcon,
+} from 'lucide-react'
 
 export const SETTINGS_KEY = 'claude-dashboard-settings'
 
@@ -34,7 +39,7 @@ export interface DashboardSettings {
   telegramChatId: string
   autoApprovePermissions: boolean
   sshProfiles: SshProfile[]
-  activeSshProfile: string | null // name of active profile, null = local
+  activeSshProfile: string | null
 }
 
 const defaultSettings: DashboardSettings = {
@@ -74,10 +79,58 @@ function applyTheme(theme: 'dark' | 'light' | 'system') {
   }
 }
 
+// ─── Section Card ─────────────────────────────────────
+
+function SettingsCard({
+  icon,
+  title,
+  description,
+  children,
+  collapsible = false,
+  defaultOpen = true,
+}: {
+  icon: React.ReactNode
+  title: string
+  description?: string
+  children: React.ReactNode
+  collapsible?: boolean
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className="rounded-xl border border-border bg-card">
+      <button
+        className={`w-full flex items-center gap-3 p-4 text-left ${collapsible ? 'cursor-pointer hover:bg-accent/30 transition-colors' : 'cursor-default'} ${open ? '' : 'rounded-xl'}`}
+        onClick={() => collapsible && setOpen(!open)}
+      >
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+        </div>
+        {collapsible && (
+          open ? <ChevronUpIcon className="size-4 text-muted-foreground" /> : <ChevronDownIcon className="size-4 text-muted-foreground" />
+        )}
+      </button>
+      {open && (
+        <>
+          <Separator />
+          <div className="p-4 space-y-4">
+            {children}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── SSH Profile Manager ──────────────────────────────
+
 function SshProfileManager({
-  settings,
-  updateSetting,
-  locale,
+  settings, updateSetting, locale,
 }: {
   settings: DashboardSettings
   updateSetting: <K extends keyof DashboardSettings>(key: K, value: DashboardSettings[K]) => void
@@ -103,76 +156,90 @@ function SshProfileManager({
 
   const handleDelete = (profileName: string) => {
     updateSetting('sshProfiles', settings.sshProfiles.filter((p) => p.name !== profileName))
-    if (settings.activeSshProfile === profileName) {
-      updateSetting('activeSshProfile', null)
-    }
+    if (settings.activeSshProfile === profileName) updateSetting('activeSshProfile', null)
   }
 
   const handleTest = async (profile: SshProfile) => {
-    setTesting(true)
-    setTestResult(null)
+    setTesting(true); setTestResult(null)
     try {
       const result = await invoke<string>('ssh_test_connection', {
         config: { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null },
       })
       if (result.startsWith('connected:')) {
         setTestResult(`✅ ${locale === 'it' ? 'Connesso' : 'Connected'} — Claude ${result.split(':')[1]}`)
-      } else if (result === 'connected_no_claude') {
-        setTestResult(`⚠️ ${locale === 'it' ? 'Connesso ma Claude Code non trovato' : 'Connected but Claude Code not found'}`)
+      } else {
+        setTestResult(`⚠️ ${locale === 'it' ? 'Connesso ma Claude non trovato' : 'Connected but Claude not found'}`)
       }
-    } catch (e) {
-      setTestResult(`❌ ${e}`)
-    } finally {
-      setTesting(false)
-    }
+    } catch (e) { setTestResult(`❌ ${e}`) }
+    finally { setTesting(false) }
   }
 
   return (
     <div className="space-y-3">
+      {/* Active selector */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={!settings.activeSshProfile ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => updateSetting('activeSshProfile', null)}
+        >
+          <MonitorIcon className="size-3 mr-1.5" /> Local
+        </Button>
+        {settings.sshProfiles.map((p) => (
+          <Button
+            key={p.name}
+            variant={settings.activeSshProfile === p.name ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => updateSetting('activeSshProfile', p.name)}
+          >
+            <GlobeIcon className="size-3 mr-1.5" /> {p.name}
+          </Button>
+        ))}
+      </div>
+
+      {/* Profile list */}
       {settings.sshProfiles.map((p) => (
-        <div key={p.name} className="flex items-center justify-between rounded-lg border border-border p-3">
+        <div key={p.name} className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
           <div>
-            <span className="font-medium text-sm">{p.name}</span>
+            <span className="text-sm font-medium">{p.name}</span>
             <p className="text-xs text-muted-foreground font-mono">{p.user}@{p.host}:{p.port}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <Button variant="ghost" size="sm" onClick={() => handleTest(p)} disabled={testing}>
-              {testing ? '...' : locale === 'it' ? 'Test' : 'Test'}
+              {testing ? '...' : 'Test'}
             </Button>
-            <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(p.name)}>
-              ×
+            <Button variant="ghost" size="sm" onClick={() => handleDelete(p.name)}>
+              <TrashIcon className="size-3.5 text-destructive" />
             </Button>
           </div>
         </div>
       ))}
 
-      {testResult && (
-        <p className="text-xs px-1">{testResult}</p>
-      )}
+      {testResult && <p className="text-xs px-1">{testResult}</p>}
 
       {showForm ? (
-        <div className="space-y-2 rounded-lg border border-border p-4">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3 rounded-lg bg-muted/20 p-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">{locale === 'it' ? 'Nome' : 'Name'}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="my-vm" className="h-8 text-sm" />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="my-vm" className="h-8 text-sm mt-1" />
             </div>
             <div>
               <Label className="text-xs">Host</Label>
-              <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="192.168.1.100" className="h-8 text-sm" />
+              <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="192.168.1.100" className="h-8 text-sm mt-1" />
             </div>
             <div>
               <Label className="text-xs">{locale === 'it' ? 'Utente' : 'User'}</Label>
-              <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder="root" className="h-8 text-sm" />
+              <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder="root" className="h-8 text-sm mt-1" />
             </div>
             <div>
               <Label className="text-xs">{locale === 'it' ? 'Porta' : 'Port'}</Label>
-              <Input value={port} onChange={(e) => setPort(e.target.value)} placeholder="22" className="h-8 text-sm" />
+              <Input value={port} onChange={(e) => setPort(e.target.value)} placeholder="22" className="h-8 text-sm mt-1" />
             </div>
           </div>
           <div>
-            <Label className="text-xs">{locale === 'it' ? 'Chiave SSH (opzionale)' : 'SSH Key (optional)'}</Label>
-            <Input value={keyPath} onChange={(e) => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="h-8 text-sm" />
+            <Label className="text-xs">{locale === 'it' ? 'Chiave SSH' : 'SSH Key'} <span className="text-muted-foreground">({locale === 'it' ? 'opzionale' : 'optional'})</span></Label>
+            <Input value={keyPath} onChange={(e) => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="h-8 text-sm mt-1" />
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave} disabled={!name || !host || !user}>
@@ -185,12 +252,14 @@ function SshProfileManager({
         </div>
       ) : (
         <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
-          + {locale === 'it' ? 'Aggiungi profilo SSH' : 'Add SSH profile'}
+          + {locale === 'it' ? 'Aggiungi VM' : 'Add VM'}
         </Button>
       )}
     </div>
   )
 }
+
+// ─── Telegram Bot Controls ────────────────────────────
 
 function TelegramBotControls({ settings, locale }: { settings: DashboardSettings; locale: string }) {
   const [botRunning, setBotRunning] = useState(false)
@@ -204,311 +273,219 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
   }, [])
 
   const handleStart = async () => {
-    if (!settings.telegramBotToken) {
-      toast.error(locale === 'it' ? 'Inserisci il Bot Token' : 'Enter Bot Token')
-      return
-    }
+    if (!settings.telegramBotToken) { toast.error(locale === 'it' ? 'Inserisci il Bot Token' : 'Enter Bot Token'); return }
     setStarting(true)
     try {
       const chatId = settings.telegramChatId ? parseInt(settings.telegramChatId) : undefined
       const result = await invoke<{ running: boolean; bot_name: string | null }>('telegram_start_bot', {
-        botToken: settings.telegramBotToken,
-        allowedChatId: chatId || null,
-        projectPath: null,
-        autoApprove: settings.autoApprovePermissions,
+        botToken: settings.telegramBotToken, allowedChatId: chatId || null, projectPath: null, autoApprove: false,
       })
-      setBotRunning(result.running)
-      setBotName(result.bot_name ?? null)
+      setBotRunning(result.running); setBotName(result.bot_name ?? null)
       toast.success(`Bot @${result.bot_name} ${locale === 'it' ? 'avviato!' : 'started!'}`)
-    } catch (e) {
-      toast.error(`${locale === 'it' ? 'Errore' : 'Error'}: ${e}`)
-    } finally {
-      setStarting(false)
-    }
+    } catch (e) { toast.error(`Error: ${e}`) }
+    finally { setStarting(false) }
   }
 
   const handleStop = async () => {
-    try {
-      await invoke('telegram_stop_bot')
-      setBotRunning(false)
-      setBotName(null)
-      toast.success(locale === 'it' ? 'Bot fermato' : 'Bot stopped')
-    } catch (e) {
-      toast.error(`Error: ${e}`)
-    }
+    try { await invoke('telegram_stop_bot'); setBotRunning(false); setBotName(null); toast.success(locale === 'it' ? 'Bot fermato' : 'Bot stopped') }
+    catch (e) { toast.error(`Error: ${e}`) }
   }
 
   return (
     <div className="flex items-center gap-3">
       {botRunning ? (
         <>
-          <Badge variant="default" className="text-xs">
-            🟢 @{botName ?? 'bot'} {locale === 'it' ? 'attivo' : 'active'}
-          </Badge>
+          <Badge variant="default" className="text-xs">🟢 @{botName ?? 'bot'}</Badge>
           <Button variant="outline" size="sm" onClick={handleStop}>
-            {locale === 'it' ? 'Ferma bot' : 'Stop bot'}
+            {locale === 'it' ? 'Ferma' : 'Stop'}
           </Button>
         </>
       ) : (
         <Button size="sm" onClick={handleStart} disabled={starting || !settings.telegramBotToken}>
-          {starting ? '...' : locale === 'it' ? '▶ Avvia bot Telegram' : '▶ Start Telegram bot'}
+          {starting ? '...' : locale === 'it' ? '▶ Avvia' : '▶ Start'}
         </Button>
       )}
     </div>
   )
 }
 
+// ─── Settings Page ────────────────────────────────────
+
 export function SettingsPage() {
   const { t, locale } = useI18n()
   const [settings, setSettings] = useState<DashboardSettings>(getSettings)
   const loadConfigs = useConfigStore((s) => s.loadConfigs)
 
-  useEffect(() => {
-    applyTheme(settings.theme)
-  }, [settings.theme])
+  useEffect(() => { applyTheme(settings.theme) }, [settings.theme])
 
   const updateSetting = <K extends keyof DashboardSettings>(key: K, value: DashboardSettings[K]) => {
     const updated = { ...settings, [key]: value }
     setSettings(updated)
     saveSettings(updated)
     toast.success(t('settings.saved'))
-
-    // Reload configs when SSH profile changes
-    if (key === 'activeSshProfile') {
-      setTimeout(() => loadConfigs(), 100)
-    }
+    if (key === 'activeSshProfile') setTimeout(() => loadConfigs(), 100)
   }
 
   return (
-    <div className="p-6 max-w-3xl">
-      <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
+    <div className="p-6 max-w-3xl space-y-4">
+      <h2 className="text-2xl font-bold mb-2">{t('settings.title')}</h2>
 
-      {/* Theme + Language row */}
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        <div className="space-y-3">
-          <Label>{t('settings.theme')}</Label>
-          <div className="flex gap-2">
-            {(['dark', 'light', 'system'] as const).map((theme) => (
-              <Button
-                key={theme}
-                variant={settings.theme === theme ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => updateSetting('theme', theme)}
-              >
-                {theme === 'dark' ? t('settings.dark') : theme === 'light' ? t('settings.light') : t('settings.system')}
+      {/* ── Appearance ── */}
+      <SettingsCard
+        icon={<PaletteIcon className="size-4" />}
+        title={locale === 'it' ? 'Aspetto' : 'Appearance'}
+        description={locale === 'it' ? 'Tema e lingua dell\'interfaccia' : 'Theme and interface language'}
+      >
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.theme')}</Label>
+            <div className="flex gap-2">
+              {(['dark', 'light', 'system'] as const).map((theme) => (
+                <Button key={theme} variant={settings.theme === theme ? 'default' : 'outline'} size="sm"
+                  onClick={() => updateSetting('theme', theme)}>
+                  {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '💻'} {theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : locale === 'it' ? 'Sistema' : 'System'}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.language')}</Label>
+            <div className="flex gap-2">
+              <Button variant={settings.language === 'it' ? 'default' : 'outline'} size="sm" onClick={() => updateSetting('language', 'it')}>🇮🇹 Italiano</Button>
+              <Button variant={settings.language === 'en' ? 'default' : 'outline'} size="sm" onClick={() => updateSetting('language', 'en')}>🇬🇧 English</Button>
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+
+      {/* ── Launcher ── */}
+      <SettingsCard
+        icon={<RocketIcon className="size-4" />}
+        title="Launcher"
+        description={locale === 'it' ? 'Come avviare Claude Code' : 'How to launch Claude Code'}
+      >
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+              {locale === 'it' ? 'Integrato' : 'Built-in'}
+            </Label>
+            <div className="flex gap-2">
+              <Button variant={settings.terminalApp === 'chat' ? 'default' : 'outline'} size="sm"
+                onClick={() => updateSetting('terminalApp', 'chat')}>
+                <MessageSquareIcon className="size-3 mr-1.5" /> Chat
               </Button>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-3">
-          <Label>{t('settings.language')}</Label>
-          <div className="flex gap-2">
-            <Button
-              variant={settings.language === 'it' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateSetting('language', 'it')}
-            >
-              🇮🇹 Italiano
-            </Button>
-            <Button
-              variant={settings.language === 'en' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateSetting('language', 'en')}
-            >
-              🇬🇧 English
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Separator className="mb-8" />
-
-      {/* Launcher mode */}
-      <div className="space-y-4 mb-8">
-        <Label>{locale === 'it' ? 'Modalità di avvio' : 'Launch mode'}</Label>
-
-        {/* Chat & Internal Terminal */}
-        <div>
-          <p className="text-xs text-muted-foreground mb-2">{locale === 'it' ? 'Integrato nell\'app' : 'Built-in'}</p>
-          <div className="flex gap-2">
-            <Button
-              variant={settings.terminalApp === 'chat' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateSetting('terminalApp', 'chat')}
-            >
-              💬 Chat
-            </Button>
-            <Button
-              variant={settings.terminalApp === 'embedded' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateSetting('terminalApp', 'embedded')}
-            >
-              🖥️ {locale === 'it' ? 'Terminale interno' : 'Internal Terminal'}
-            </Button>
-          </div>
-        </div>
-
-        {/* External terminals */}
-        <div>
-          <p className="text-xs text-muted-foreground mb-2">{locale === 'it' ? 'Terminale esterno' : 'External terminal'}</p>
-          <div className="flex gap-2 flex-wrap">
-            {(['Terminal', 'iTerm', 'Warp', 'Alacritty', 'custom'] as const).map((id) => (
-              <Button
-                key={id}
-                variant={settings.terminalApp === id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => updateSetting('terminalApp', id)}
-              >
-                {id === 'iTerm' ? 'iTerm2' : id === 'custom' ? (locale === 'it' ? 'Altro…' : 'Other…') : id}
+              <Button variant={settings.terminalApp === 'embedded' ? 'default' : 'outline'} size="sm"
+                onClick={() => updateSetting('terminalApp', 'embedded')}>
+                <TerminalIcon className="size-3 mr-1.5" /> {locale === 'it' ? 'Terminale' : 'Terminal'}
               </Button>
-            ))}
+            </div>
           </div>
-          {settings.terminalApp === 'custom' && (
-            <Input
-              value={settings.customTerminalPath}
-              onChange={(e) => updateSetting('customTerminalPath', e.target.value)}
-              placeholder="es. /Applications/Kitty.app"
-              className="mt-2"
-            />
-          )}
+          <div>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+              {locale === 'it' ? 'Terminale esterno' : 'External terminal'}
+            </Label>
+            <div className="flex gap-2 flex-wrap">
+              {(['Terminal', 'iTerm', 'Warp', 'Alacritty', 'custom'] as const).map((id) => (
+                <Button key={id} variant={settings.terminalApp === id ? 'default' : 'outline'} size="sm"
+                  onClick={() => updateSetting('terminalApp', id)}>
+                  {id === 'iTerm' ? 'iTerm2' : id === 'custom' ? (locale === 'it' ? 'Altro…' : 'Other…') : id}
+                </Button>
+              ))}
+            </div>
+            {settings.terminalApp === 'custom' && (
+              <Input value={settings.customTerminalPath} onChange={(e) => updateSetting('customTerminalPath', e.target.value)}
+                placeholder="es. /Applications/Kitty.app" className="mt-2" />
+            )}
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">tmux</p>
+              <p className="text-xs text-muted-foreground">{t('settings.tmuxDesc')}</p>
+            </div>
+            <Switch checked={settings.useTmux} onCheckedChange={(checked) => updateSetting('useTmux', !!checked)} />
+          </div>
         </div>
+      </SettingsCard>
 
-        <p className="text-xs text-muted-foreground">{t('settings.terminalDesc')}</p>
-      </div>
-
-      {/* tmux */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <Label>{t('settings.useTmux')}</Label>
-          <p className="text-xs text-muted-foreground mt-1">{t('settings.tmuxDesc')}</p>
-        </div>
-        <Switch
-          checked={settings.useTmux}
-          onCheckedChange={(checked) => updateSetting('useTmux', !!checked)}
-        />
-      </div>
-
-      {/* SSH Remote */}
-      <div className="space-y-4 mb-8">
-        <Label>🖥️ SSH Remote</Label>
-        <p className="text-xs text-muted-foreground">
-          {locale === 'it'
-            ? 'Connettiti a una VM remota dove Claude Code è installato. Il terminale e la chat lavoreranno sulla macchina remota.'
-            : 'Connect to a remote VM where Claude Code is installed. Terminal and chat will work on the remote machine.'}
-        </p>
-
-        {/* Active profile selector */}
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant={!settings.activeSshProfile ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => updateSetting('activeSshProfile', null)}
-          >
-            💻 {locale === 'it' ? 'Locale' : 'Local'}
-          </Button>
-          {settings.sshProfiles.map((p) => (
-            <Button
-              key={p.name}
-              variant={settings.activeSshProfile === p.name ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateSetting('activeSshProfile', p.name)}
-            >
-              🖥️ {p.name}
-            </Button>
-          ))}
-        </div>
-
+      {/* ── SSH Remote ── */}
+      <SettingsCard
+        icon={<MonitorIcon className="size-4" />}
+        title="SSH Remote"
+        description={locale === 'it' ? 'Connetti a una VM remota con Claude Code' : 'Connect to a remote VM with Claude Code'}
+        collapsible
+        defaultOpen={settings.sshProfiles.length > 0}
+      >
         <SshProfileManager settings={settings} updateSetting={updateSetting} locale={locale} />
-      </div>
+      </SettingsCard>
 
-      <Separator className="mb-8" />
-
-      {/* Claude path override */}
-      <div className="space-y-3 mb-8">
-        <Label htmlFor="claude-path">{t('settings.claudePath')}</Label>
-        <Input
-          id="claude-path"
-          value={settings.claudePathOverride}
-          onChange={(e) => updateSetting('claudePathOverride', e.target.value)}
-          placeholder={t('settings.claudePathPlaceholder')}
-        />
-        <p className="text-xs text-muted-foreground">{t('settings.claudePathDesc')}</p>
-      </div>
-
-      <Separator className="mb-8" />
-
-      {/* Telegram Bot */}
-      <div className="space-y-4 mb-8">
-        <Label>📱 Telegram Bot</Label>
-        <p className="text-xs text-muted-foreground">
-          {locale === 'it'
-            ? 'Controlla Claude Code dal cellulare via Telegram. Crea un bot con @BotFather, incolla il token qui e avvia.'
-            : 'Control Claude Code from your phone via Telegram. Create a bot with @BotFather, paste the token here and start.'}
-        </p>
+      {/* ── Telegram ── */}
+      <SettingsCard
+        icon={<SmartphoneIcon className="size-4" />}
+        title="Telegram Bot"
+        description={locale === 'it' ? 'Controlla Claude Code dal cellulare' : 'Control Claude Code from your phone'}
+        collapsible
+        defaultOpen={!!settings.telegramBotToken}
+      >
         <div className="space-y-3">
-          <Input
-            value={settings.telegramBotToken}
-            onChange={(e) => updateSetting('telegramBotToken', e.target.value)}
-            placeholder="Bot Token (es. 123456:ABC-DEF...)"
-            type="password"
-          />
-          <Input
-            value={settings.telegramChatId}
-            onChange={(e) => updateSetting('telegramChatId', e.target.value)}
-            placeholder={locale === 'it' ? 'Chat ID (opzionale, per sicurezza)' : 'Chat ID (optional, for security)'}
-          />
+          <Input value={settings.telegramBotToken} onChange={(e) => updateSetting('telegramBotToken', e.target.value)}
+            placeholder="Bot Token" type="password" />
+          <Input value={settings.telegramChatId} onChange={(e) => updateSetting('telegramChatId', e.target.value)}
+            placeholder={locale === 'it' ? 'Chat ID (opzionale)' : 'Chat ID (optional)'} />
           <p className="text-xs text-muted-foreground">
             {locale === 'it'
-              ? 'Invia /chatid al bot per ottenere il tuo Chat ID. Se lo imposti, solo tu potrai usare il bot.'
-              : 'Send /chatid to the bot to get your Chat ID. If set, only you can use the bot.'}
+              ? 'Crea un bot con @BotFather, incolla il token. Invia /chatid al bot per ottenere il tuo ID.'
+              : 'Create a bot with @BotFather, paste the token. Send /chatid to the bot to get your ID.'}
           </p>
           <TelegramBotControls settings={settings} locale={locale} />
         </div>
-      </div>
+      </SettingsCard>
 
-      <Separator className="mb-8" />
+      {/* ── Advanced ── */}
+      <SettingsCard
+        icon={<KeyIcon className="size-4" />}
+        title={locale === 'it' ? 'Avanzate' : 'Advanced'}
+        description={locale === 'it' ? 'Path, dati, import/export' : 'Path, data, import/export'}
+        collapsible
+        defaultOpen={false}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.claudePath')}</Label>
+            <Input value={settings.claudePathOverride} onChange={(e) => updateSetting('claudePathOverride', e.target.value)}
+              placeholder={t('settings.claudePathPlaceholder')} />
+            <p className="text-xs text-muted-foreground">{t('settings.claudePathDesc')}</p>
+          </div>
 
-      {/* Storage */}
-      <div className="space-y-3 mb-8">
-        <Label>{t('settings.localData')}</Label>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              for (const k of Object.keys(localStorage)) {
-                if (k.startsWith('claude-dashboard-chat')) {
-                  localStorage.removeItem(k)
-                }
-              }
-              toast.success(t('common.chatCleared'))
-            }}
-          >
-            {t('settings.clearChatHistory')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem('claude-dashboard-recent-launches')
-              toast.success(t('common.recentCleared'))
-            }}
-          >
-            {t('settings.clearRecentLaunches')}
-          </Button>
+          <Separator />
+
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.localData')}</Label>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                for (const k of Object.keys(localStorage)) { if (k.startsWith('claude-dashboard-chat')) localStorage.removeItem(k) }
+                toast.success(t('common.chatCleared'))
+              }}>
+                <TrashIcon className="size-3 mr-1.5" /> {t('settings.clearChatHistory')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                localStorage.removeItem('claude-dashboard-recent-launches')
+                toast.success(t('common.recentCleared'))
+              }}>
+                <TrashIcon className="size-3 mr-1.5" /> {t('settings.clearRecentLaunches')}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          <ImportExportPage />
         </div>
-        <p className="text-xs text-muted-foreground">{t('settings.localDataDesc')}</p>
-      </div>
+      </SettingsCard>
 
-      {/* Import / Export */}
-      <ImportExportPage />
-
-      <Separator className="mb-8 mt-8" />
-
-      {/* Info */}
-      <div className="rounded-lg border border-border p-4">
-        <p className="text-sm font-medium mb-2">Claude Code Dashboard</p>
-        <p className="text-xs text-muted-foreground">v0.7.0</p>
+      {/* ── Footer ── */}
+      <div className="text-center py-4">
+        <p className="text-xs text-muted-foreground">Claude Code Dashboard v0.7.0</p>
         <p className="text-xs text-muted-foreground">
           {locale === 'it' ? 'Configurazione' : 'Configuration'}: ~/.claude/settings.json
         </p>
