@@ -213,28 +213,29 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // For SSH: use exact same script approach as local
-                    // The PTY is already connected via SSH, so the script
-                    // runs on the remote machine
-                    let script = r##"#!/bin/sh
-S=__SESS__
-tmux has-session -t $S 2>/dev/null && exec tmux attach -t $S
-tmux new-session -d -s $S
-tmux split-window -t $S -v -p 30
-tmux select-pane -t $S:0.0
-tmux send-keys -t $S:0.0 'claude' Enter
-tmux set -t $S mouse on
-tmux set -t $S pane-border-style 'fg=colour240'
-tmux set -t $S pane-active-border-style 'fg=colour141,bold'
-tmux set -t $S pane-border-lines heavy
-tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'
-tmux select-pane -t $S:0.0
-tmux attach -t $S
-"##.replace("__SESS__", &sess_name);
+                    // Remote: fish shell doesn't support heredoc/bash syntax
+                    // Write script via echo lines piped to bash, then execute
                     let script_path = format!("/tmp/ccd-tmux-{}.sh", sess_name);
+                    let s = &sess_name;
+                    let lines = vec![
+                        "#!/bin/sh".to_string(),
+                        format!("S={}", s),
+                        "tmux has-session -t $S 2>/dev/null && exec tmux attach -t $S".to_string(),
+                        "tmux new-session -d -s $S".to_string(),
+                        "tmux split-window -t $S -v -p 30".to_string(),
+                        "tmux select-pane -t $S:0.0".to_string(),
+                        "tmux send-keys -t $S:0.0 claude Enter".to_string(),
+                        "tmux set -t $S mouse on".to_string(),
+                        "tmux set -t $S pane-border-lines heavy".to_string(),
+                        "tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'".to_string(),
+                        "tmux select-pane -t $S:0.0".to_string(),
+                        "tmux attach -t $S".to_string(),
+                    ];
+                    // Use printf which works in both bash and fish
+                    let escaped = lines.join("\\n");
                     format!(
-                        "cat > {} << 'CCDEOF'\n{}\nCCDEOF\nchmod +x {} && {}\n",
-                        script_path, script, script_path, script_path
+                        "printf '{}\\n' > {} ; chmod +x {} ; {}\n",
+                        escaped, script_path, script_path, script_path
                     )
                 } else {
                     // Local: check with local command
