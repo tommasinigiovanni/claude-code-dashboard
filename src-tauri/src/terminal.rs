@@ -278,7 +278,8 @@ tmux new-session -s \"$S\" claude\n",
                     // Create tmux session via a temp script to avoid long command line
                     let script = r##"#!/bin/sh
 S=__SESS__
-tmux new-session -d -s $S
+D=__DIR__
+tmux new-session -d -s $S -c "$D"
 tmux split-window -t $S -v -p 30
 tmux select-pane -t $S:0.0
 tmux send-keys -t $S:0.0 'claude' Enter
@@ -292,7 +293,8 @@ tmux set -t $S status-right '#[fg=colour93,bold] ↕ drag border to resize #[fg=
 tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'
 tmux select-pane -t $S:0.0
 tmux attach-session -t $S
-"##.replace("__SESS__", &sess_name);
+"##.replace("__SESS__", &sess_name)
+  .replace("__DIR__", project_path_clone.as_deref().unwrap_or("."));
                     let script_path = std::env::temp_dir().join(format!("tmux-{}.sh", sess_name));
                     let _ = std::fs::write(&script_path, &script);
                     #[cfg(unix)]
