@@ -174,7 +174,6 @@ pub async fn terminal_spawn(
         // Wait for shell prompt
         std::thread::sleep(std::time::Duration::from_millis(500));
 
-        let mut sessions = SESSIONS.lock().unwrap();
         // If SSH, connect first
         if let Some(ref cfg) = ssh_cfg {
             let ssh_cmd = crate::ssh::get_ssh_command(cfg);
@@ -202,8 +201,10 @@ pub async fn terminal_spawn(
 
         let mut sessions = SESSIONS.lock().unwrap();
         if let Some(session) = sessions.get_mut(&sid_clone) {
+            // For SSH remote, use simple commands (tmux check is remote)
+            let is_remote = ssh_cfg.is_some();
+
             let command = if let Some(ref attach_name) = tmux_attach {
-                // Directly attach to a specific tmux session
                 format!("tmux attach-session -t {}\n", attach_name)
             } else if use_tmux {
                 let sess_name = project_path_clone
@@ -211,12 +212,19 @@ pub async fn terminal_spawn(
                     .map(sanitize_session_name)
                     .unwrap_or_else(|| "claude-default".to_string());
 
-                // Check if session exists
-                let exists = std::process::Command::new("tmux")
-                    .args(["has-session", "-t", &sess_name])
-                    .output()
-                    .map(|o| o.status.success())
-                    .unwrap_or(false);
+                if is_remote {
+                    // For SSH: check remote tmux, use inline commands
+                    format!(
+                        "tmux has-session -t {} 2>/dev/null && tmux attach-session -t {} || (tmux new-session -d -s {} && tmux split-window -t {} -v -p 30 && tmux send-keys -t {}:0.0 'claude' Enter && tmux set -t {} mouse on && tmux attach-session -t {})\n",
+                        sess_name, sess_name, sess_name, sess_name, sess_name, sess_name, sess_name
+                    )
+                } else {
+                    // Local: check with local command
+                    let exists = std::process::Command::new("tmux")
+                        .args(["has-session", "-t", &sess_name])
+                        .output()
+                        .map(|o| o.status.success())
+                        .unwrap_or(false);
 
                 if exists {
                     format!("tmux attach-session -t {}\n", sess_name)
@@ -249,6 +257,7 @@ tmux attach-session -t $S
                         );
                     }
                     format!("{}\n", script_path.display())
+                }
                 }
             } else {
                 "claude\n".to_string()
