@@ -213,11 +213,29 @@ pub async fn terminal_spawn(
                     .unwrap_or_else(|| "claude-default".to_string());
 
                 if is_remote {
-                    // For SSH: same split setup as local but via inline script
-                    format!(
-                        "bash -c 'S={s}; tmux has-session -t $S 2>/dev/null && tmux attach-session -t $S || (tmux new-session -d -s $S && tmux split-window -t $S -v -p 30 && tmux select-pane -t $S:0.0 && tmux send-keys -t $S:0.0 claude Enter && tmux set -t $S mouse on && tmux set -t $S pane-border-style \"fg=colour240\" && tmux set -t $S pane-active-border-style \"fg=colour141,bold\" && tmux set -t $S pane-border-lines heavy && tmux set -t $S status-style \"fg=colour245,bg=colour236\" && tmux set -t $S status-left \"#[fg=colour141,bold] $S \" && tmux select-pane -t $S:0.1 -P \"fg=colour46,bg=colour16\" && tmux select-pane -t $S:0.0 && tmux attach-session -t $S)'\n",
+                    // For SSH: create script on remote, then execute
+                    let script_cmds = format!(
+                        "cat > /tmp/tmux-{s}.sh << 'TMUXEOF'\n\
+#!/bin/bash\n\
+S={s}\n\
+tmux has-session -t $S 2>/dev/null && tmux attach-session -t $S && exit 0\n\
+tmux new-session -d -s $S\n\
+tmux split-window -t $S -v -p 30\n\
+tmux select-pane -t $S:0.0\n\
+tmux send-keys -t $S:0.0 'claude' Enter\n\
+tmux set -t $S mouse on\n\
+tmux set -t $S pane-border-style 'fg=colour240'\n\
+tmux set -t $S pane-active-border-style 'fg=colour141,bold'\n\
+tmux set -t $S pane-border-lines heavy\n\
+tmux set -t $S status-style 'fg=colour245,bg=colour236'\n\
+tmux select-pane -t $S:0.1 -P 'fg=colour46,bg=colour16'\n\
+tmux select-pane -t $S:0.0\n\
+tmux attach-session -t $S\n\
+TMUXEOF\n\
+chmod +x /tmp/tmux-{s}.sh && /tmp/tmux-{s}.sh\n",
                         s = sess_name
-                    )
+                    );
+                    script_cmds
                 } else {
                     // Local: check with local command
                     let exists = std::process::Command::new("tmux")
