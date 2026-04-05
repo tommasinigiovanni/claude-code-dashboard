@@ -158,11 +158,14 @@ Claude **ricorda il contesto** tra messaggi nella stessa conversazione. Usa \`/n
         content: `| Scorciatoia | Azione |
 |-------------|--------|
 | **Cmd+K** | Command Palette — cerca pagine e sessioni tmux |
+| **Cmd+1..8** | Naviga direttamente alle pagine (1=Launcher, 2=MCP, etc.) |
 | **Click sul path** | Copia il percorso negli appunti |
 | **📂 su skill/plugin** | Apre la cartella nel Finder |
 | **Enter** | Invia messaggio nella chat |
 | **Shift+Enter** | Nuova riga nella chat |
-| **Cmd+V** | Incolla immagine nella chat |`,
+| **Cmd+V** | Incolla immagine nella chat |
+
+Le notifiche desktop appaiono quando una risposta della chat è pronta e la finestra non è in primo piano.`,
       },
       {
         icon: '📋',
@@ -350,11 +353,14 @@ Claude **remembers context** between messages in the same conversation. Use \`/n
         content: `| Shortcut | Action |
 |----------|--------|
 | **Cmd+K** | Command Palette — search pages and tmux sessions |
+| **Cmd+1..8** | Navigate directly to pages (1=Launcher, 2=MCP, etc.) |
 | **Click on path** | Copy path to clipboard |
 | **📂 on skill/plugin** | Open folder in Finder |
 | **Enter** | Send message in chat |
 | **Shift+Enter** | New line in chat |
-| **Cmd+V** | Paste image in chat |`,
+| **Cmd+V** | Paste image in chat |
+
+Desktop notifications appear when a chat response is ready and the window is not focused.`,
       },
       {
         icon: '📋',

@@ -3,6 +3,23 @@ import remarkGfm from 'remark-gfm'
 import { useI18n } from '@/i18n/useI18n'
 
 const changelog = `
+## v1.1.0 — 2026-04-06
+
+**Security, Quality & Backup System**
+
+- 🔒 **Security** — SSH path escaping, StrictHostKeyChecking=accept-new, Telegram chat_id warning
+- 🐛 **Bug fixes** — Profile dates, Rust warnings (0!), unwrap safety, tmux project path
+- 🏗️ **Code quality** — config.rs split, shared hooks, DRY refactoring
+- ⚡ **Performance** — Event-driven TopBar, reduced polling
+- ⌨️ **Cmd+1..8** — Keyboard shortcuts for page navigation
+- 🔔 **Desktop notifications** — Alert when chat response arrives
+- 💾 **Auto-save chat** on window close
+- 🟢 **Session indicator** — Green dot when tmux active
+- 📦 **Backup system** — Auto-backup on start, manual backup, restore, list
+- 🎨 **UX redesign** — Stats bars, search, filters, card layouts on all pages
+
+---
+
 ## v1.0.0 — 2026-04-05 🎉
 
 **First Stable Release!**

@@ -2,6 +2,45 @@
 
 All notable changes to Claude Code Dashboard will be documented in this file.
 
+## [1.1.0] - 2026-04-06
+
+### Security
+- SSH path injection: escape single quotes in all remote paths
+- Changed `StrictHostKeyChecking` from `no` to `accept-new` (MITM protection)
+- Telegram warning when bot running without chat_id
+
+### Bug Fixes
+- Profile dates: handle both seconds and milliseconds timestamps
+- Fixed unsafe `unwrap()` calls in telegram.rs
+- Removed unused `install_plugin` function
+- Resolved all 9 Rust compiler warnings (0 warnings now)
+- Local tmux sessions now open in project directory (not home)
+
+### Code Quality
+- Split `config.rs` (819 lines) into `types.rs` + `readers.rs` + `config.rs`
+- Created shared `useSshConfig` hook (eliminated 4+ duplications)
+- Replaced 8 inline `localStorage` reads with centralized `getSettings()`
+- Event-driven settings updates (custom `settings-changed` event)
+
+### Performance
+- TopBar: event-driven instead of 1-second polling
+- TmuxSessionTabs: reduced polling from 3s to 10s
+
+### UX Improvements
+- **Cmd+1..8** keyboard shortcuts for page navigation
+- **Desktop notifications** when chat response completes (window hidden)
+- **Auto-save chat** on window close (beforeunload)
+- **Session indicator** — green dot on Launcher when tmux sessions active
+- **Backup management UI** — list, restore, delete backups in Settings
+- **UX redesign** of all pages: stats bars, search, filters, card layouts
+
+### New Features
+- **Automatic backup** on app startup (~/.claude/dashboard-backups/)
+- **Manual backup** button in Settings
+- **Restore backup** with pre-restore safety copy
+- **Backup rotation** — keeps last 7, auto-deletes older
+- **Backup list** with timestamp, size, restore/delete actions
+
 ## [1.0.0] - 2026-04-05 — First Stable Release 🎉
 
 ### Highlights
