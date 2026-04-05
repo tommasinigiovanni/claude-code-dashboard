@@ -128,23 +128,28 @@ pub async fn ssh_list_files(config: SshConfig, remote_dir: String, pattern: Stri
 pub async fn ssh_read_dashboard_data(config: SshConfig) -> Result<serde_json::Value, String> {
     // Read everything we need in a single SSH command
     let mut args = build_ssh_args(&config);
-    args.push(r#"
-cat ~/.claude/settings.json 2>/dev/null || echo '{}';
-echo '___SEPARATOR___';
-cat ~/.claude/plugins/installed_plugins.json 2>/dev/null || echo '{"plugins":{}}';
-echo '___SEPARATOR___';
-cat ~/.claude/mcp-needs-auth-cache.json 2>/dev/null || echo '{}';
-echo '___SEPARATOR___';
-find ~/.claude/agents -name '*.md' -exec echo '{}' \; 2>/dev/null;
-echo '___SEPARATOR___';
-find ~/.claude/skills -name 'SKILL.md' -exec echo '{}' \; 2>/dev/null;
-echo '___SEPARATOR___';
-find ~/.claude/commands -name '*.md' -exec echo '{}' \; 2>/dev/null;
-echo '___SEPARATOR___';
-for d in $(ls -1t ~/.claude/projects/ 2>/dev/null | head -15); do f=$(ls -1t ~/.claude/projects/$d/*.jsonl 2>/dev/null | head -1); if [ -n "$f" ]; then grep -m1 '"cwd"' "$f" 2>/dev/null | sed 's/.*"cwd":"\([^"]*\)".*/\1/'; fi; done;
-echo '___SEPARATOR___';
-tmux list-sessions -F '#{session_name}|#{session_attached}|#{session_windows}|#{session_created_string}' 2>/dev/null || echo '';
-"#.to_string());
+    args.push(r##"bash -c '
+cat ~/.claude/settings.json 2>/dev/null || echo "{}"
+echo "___SEPARATOR___"
+cat ~/.claude/plugins/installed_plugins.json 2>/dev/null || echo "{\"plugins\":{}}"
+echo "___SEPARATOR___"
+cat ~/.claude/mcp-needs-auth-cache.json 2>/dev/null || echo "{}"
+echo "___SEPARATOR___"
+find ~/.claude/agents -name "*.md" 2>/dev/null
+echo "___SEPARATOR___"
+find ~/.claude/skills -name "SKILL.md" 2>/dev/null
+echo "___SEPARATOR___"
+find ~/.claude/commands -name "*.md" 2>/dev/null
+echo "___SEPARATOR___"
+for d in $(ls -1t ~/.claude/projects/ 2>/dev/null | head -15); do
+  f=$(ls -1t ~/.claude/projects/"$d"/*.jsonl 2>/dev/null | head -1)
+  if [ -n "$f" ]; then
+    grep -m1 "\"cwd\"" "$f" 2>/dev/null | sed "s/.*\"cwd\":\"\([^\"]*\)\".*/\1/"
+  fi
+done
+echo "___SEPARATOR___"
+tmux list-sessions -F "#{session_name}|#{session_attached}|#{session_windows}|#{session_created_string}" 2>/dev/null || echo ""
+'"##.to_string());
 
     let output = Command::new("ssh")
         .args(&args)
