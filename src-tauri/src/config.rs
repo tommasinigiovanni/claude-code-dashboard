@@ -167,6 +167,12 @@ pub async fn write_config(
 }
 
 #[tauri::command]
+pub async fn get_claude_home() -> Result<String, String> {
+    let claude_dir = get_claude_dir()?;
+    Ok(claude_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 pub async fn read_agent_file(path: String) -> Result<String, String> {
     tokio::fs::read_to_string(&path)
         .await

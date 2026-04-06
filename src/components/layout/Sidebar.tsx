@@ -20,6 +20,9 @@ import {
   ClockIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  WebhookIcon,
+  BarChart3Icon,
+  FileEditIcon,
 } from 'lucide-react'
 
 type NavItem = { id: Page; labelKey: TranslationKey; icon: ReactNode }
@@ -35,6 +38,9 @@ const navSections: NavSection[] = [
     { id: 'mcp', labelKey: 'nav.mcp', icon: <ServerIcon className="size-4" /> },
     { id: 'skills', labelKey: 'nav.skills', icon: <ZapIcon className="size-4" /> },
     { id: 'subagents', labelKey: 'nav.subagents', icon: <BotIcon className="size-4" /> },
+    { id: 'hooks', labelKey: 'nav.hooks' as TranslationKey, icon: <WebhookIcon className="size-4" /> },
+    { id: 'usage', labelKey: 'nav.usage' as TranslationKey, icon: <BarChart3Icon className="size-4" /> },
+    { id: 'claudemd', labelKey: 'nav.claudemd' as TranslationKey, icon: <FileEditIcon className="size-4" /> },
   ],
   // Tools & monitoring
   [

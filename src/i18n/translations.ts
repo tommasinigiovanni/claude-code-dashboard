@@ -11,6 +11,9 @@ const translations = {
   'nav.logs': { it: 'Log Sessioni', en: 'Session Logs' },
   'nav.health': { it: 'Health Check', en: 'Health Check' },
   'nav.changelog': { it: 'Changelog', en: 'Changelog' },
+  'nav.hooks': { it: 'Hooks', en: 'Hooks' },
+  'nav.usage': { it: 'Costi e Utilizzo', en: 'Cost & Usage' },
+  'nav.claudemd': { it: 'CLAUDE.md', en: 'CLAUDE.md' },
   'nav.docs': { it: 'Documentazione', en: 'Documentation' },
   'nav.credits': { it: 'Credits', en: 'Credits' },
 

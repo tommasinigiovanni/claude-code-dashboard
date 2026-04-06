@@ -2,6 +2,7 @@ mod backup;
 mod chat;
 mod config;
 mod dialog;
+mod hooks_manager;
 mod import_export;
 mod launcher;
 mod logs;
@@ -12,6 +13,7 @@ mod telegram;
 mod terminal;
 mod tray;
 mod types;
+mod usage;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -31,6 +33,7 @@ pub fn run() {
             chat::chat_send,
             chat::chat_approve,
             chat::save_temp_image,
+            config::get_claude_home,
             config::read_config,
             config::read_dashboard_data,
             config::write_config,
@@ -69,6 +72,9 @@ pub fn run() {
             terminal::tmux_list_sessions,
             terminal::tmux_session_cwd,
             terminal::tmux_kill_session,
+            hooks_manager::read_hooks,
+            hooks_manager::write_hooks,
+            usage::read_usage_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

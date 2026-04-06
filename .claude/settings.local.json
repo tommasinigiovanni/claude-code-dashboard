@@ -35,7 +35,17 @@
       "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/26.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/health-check.png)",
       "Bash(cp /Users/giovannitommasini/.claude/image-cache/05be3b30-30e6-4ebf-a9b0-8a3c88c54e21/27.png /Users/giovannitommasini/git/personal/ClaudeCodeDashboard/docs/screenshots/settings.png)",
       "Bash(git push:*)",
-      "Bash(gh release:*)"
+      "Bash(gh release:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('hooks', 'NO HOOKS'\\), indent=2\\)\\)\")",
+      "Bash(find /Users/giovannitommasini/git -name \"settings.json\" -path \"*/.claude/*\" -exec grep -l \"hooks\" {} \\\\;)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('hooks', {}\\), indent=2\\)\\)\")",
+      "Bash(grep '\"total_cost_usd\"' ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(python3 -c \"import sys; [print\\(l.split\\('total_cost_usd'\\)[1][:20]\\) for l in sys.stdin]\")",
+      "Bash(grep -o '\"total_cost_usd\":[0-9.]*' ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(grep \"cost\" ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(python3 -c \"import sys,json; l=sys.stdin.readline\\(\\); d=json.loads\\(l.split\\('.jsonl:'\\)[1] if '.jsonl:' in l else l\\); print\\(json.dumps\\({k:d[k] for k in d if 'cost' in k.lower\\(\\) or 'usage' in k.lower\\(\\)}, indent=2\\)\\)\")",
+      "Bash(grep -o '\"costUSD\":[0-9.]*\\\\|\"total_cost\":[0-9.]*' ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
+      "Bash(grep:*)"
     ]
   }
 }

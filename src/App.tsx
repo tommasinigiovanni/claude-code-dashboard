@@ -18,6 +18,9 @@ import { ProfilesPage } from '@/pages/ProfilesPage'
 import { LogsPage } from '@/pages/LogsPage'
 import { HealthPage } from '@/pages/HealthPage'
 import { ChangelogPage } from '@/pages/ChangelogPage'
+import { HooksPage } from '@/pages/HooksPage'
+import { UsagePage } from '@/pages/UsagePage'
+import { ClaudeMdPage } from '@/pages/ClaudeMdPage'
 import { CommandPalette } from '@/components/CommandPalette'
 import { useI18n } from '@/i18n/useI18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -55,6 +58,12 @@ function MainContent() {
       return <SkillsPage />
     case 'subagents':
       return <SubagentsPage />
+    case 'hooks':
+      return <HooksPage />
+    case 'usage':
+      return <UsagePage />
+    case 'claudemd':
+      return <ClaudeMdPage />
     case 'launcher':
       return <LauncherPage />
     case 'settings':
