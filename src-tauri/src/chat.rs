@@ -189,7 +189,7 @@ pub async fn chat_start(
 
         let mut sessions = CHAT_SESSIONS.lock().unwrap();
         if let Some(session) = sessions.get_mut(&sid_for_start) {
-            let _ = session.writer.write_all(b"claude\n");
+            let _ = session.writer.write_all(format!("{}\n", crate::launcher::find_claude_path()).as_bytes());
             let _ = session.writer.flush();
         }
     });

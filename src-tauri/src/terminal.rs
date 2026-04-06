@@ -282,7 +282,7 @@ D=__DIR__
 tmux new-session -d -s $S -c "$D"
 tmux split-window -t $S -v -p 30
 tmux select-pane -t $S:0.0
-tmux send-keys -t $S:0.0 'claude' Enter
+tmux send-keys -t $S:0.0 '$(which claude || echo claude)' Enter
 tmux set -t $S mouse on
 tmux set -t $S pane-border-style 'fg=colour240'
 tmux set -t $S pane-active-border-style 'fg=colour141,bold'
@@ -308,7 +308,7 @@ tmux attach-session -t $S
                 }
                 }
             } else {
-                "claude\n".to_string()
+                format!("{}\n", crate::launcher::find_claude_path())
             };
 
             let _ = session.writer.write_all(command.as_bytes());
