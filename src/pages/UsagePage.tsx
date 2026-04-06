@@ -66,7 +66,7 @@ export function UsagePage() {
   const sortedDates = Array.from(byDate.entries()).sort((a, b) => a[0].localeCompare(b[0])).slice(-14)
   const maxDailyCost = Math.max(...sortedDates.map(([, c]) => c), 0.01)
 
-  const formatCost = (c: number) => `$${c.toFixed(4)}`
+  const formatCost = (c: number) => c >= 100 ? `$${c.toFixed(0)}` : c >= 1 ? `$${c.toFixed(2)}` : `$${c.toFixed(4)}`
   const formatTokens = (n: number) => {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
     if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
@@ -131,17 +131,24 @@ export function UsagePage() {
           </div>
           <Separator />
           <div className="p-4">
-            <div className="flex items-end gap-1 h-32">
-              {sortedDates.map(([date, cost]) => (
-                <div key={date} className="flex-1 flex flex-col items-center gap-1" title={`${date}: ${formatCost(cost)}`}>
-                  <span className="text-[10px] text-muted-foreground">{formatCost(cost)}</span>
-                  <div
-                    className="w-full bg-primary/70 rounded-t-sm min-h-[2px]"
-                    style={{ height: `${(cost / maxDailyCost) * 100}%` }}
-                  />
-                  <span className="text-[9px] text-muted-foreground truncate w-full text-center">
-                    {date.slice(5)}
-                  </span>
+            <div className="flex items-end gap-1" style={{ height: '200px' }}>
+              {sortedDates.map(([date, cost]) => {
+                const pct = maxDailyCost > 0 ? (cost / maxDailyCost) * 100 : 0
+                return (
+                  <div key={date} className="flex-1 flex flex-col items-center justify-end h-full" title={`${date}: ${formatCost(cost)}`}>
+                    <span className="text-[9px] text-muted-foreground mb-1">${cost.toFixed(0)}</span>
+                    <div
+                      className="w-full bg-primary rounded-t-sm min-h-[2px] transition-all"
+                      style={{ height: `${Math.max(pct, 1)}%` }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex gap-1 mt-1">
+              {sortedDates.map(([date]) => (
+                <div key={date} className="flex-1 text-center">
+                  <span className="text-[9px] text-muted-foreground">{date.slice(5)}</span>
                 </div>
               ))}
             </div>
