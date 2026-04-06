@@ -22,7 +22,7 @@ export function CreditsPage() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold">Claude Code Dashboard</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">v1.1.0</p>
+            <p className="text-xs text-muted-foreground mt-0.5">v1.2.0</p>
           </div>
         </div>
         <Separator />

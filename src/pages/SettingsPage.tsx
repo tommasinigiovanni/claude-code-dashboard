@@ -585,7 +585,7 @@ export function SettingsPage() {
 
       {/* ── Footer ── */}
       <div className="text-center py-4">
-        <p className="text-xs text-muted-foreground">Claude Code Dashboard v1.1.0</p>
+        <p className="text-xs text-muted-foreground">Claude Code Dashboard v1.2.0</p>
         <p className="text-xs text-muted-foreground">
           {locale === 'it' ? 'Configurazione' : 'Configuration'}: ~/.claude/settings.json
         </p>
