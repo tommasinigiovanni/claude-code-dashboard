@@ -16,6 +16,8 @@ const translations = {
   'nav.claudemd': { it: 'CLAUDE.md', en: 'CLAUDE.md' },
   'nav.docs': { it: 'Documentazione', en: 'Documentation' },
   'nav.credits': { it: 'Credits', en: 'Credits' },
+  'nav.verification': { it: 'Verifica', en: 'Verification' },
+  'nav.learning': { it: 'Memorie', en: 'Memories' },
 
   // TopBar
   'topbar.dashboard': { it: 'Dashboard', en: 'Dashboard' },

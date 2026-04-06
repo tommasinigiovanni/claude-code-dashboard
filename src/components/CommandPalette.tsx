@@ -56,6 +56,8 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
       { id: 'nav-hooks', label: t('nav.hooks' as any), category: t('palette.navigation'), action: () => navigate('hooks') },
       { id: 'nav-usage', label: t('nav.usage' as any), category: t('palette.navigation'), action: () => navigate('usage') },
       { id: 'nav-claudemd', label: t('nav.claudemd' as any), category: t('palette.navigation'), action: () => navigate('claudemd') },
+      { id: 'nav-verification', label: t('nav.verification' as any), category: t('palette.navigation'), action: () => navigate('verification') },
+      { id: 'nav-learning', label: t('nav.learning' as any), category: t('palette.navigation'), action: () => navigate('learning') },
       { id: 'nav-launcher', label: t('nav.launcher'), category: t('palette.navigation'), action: () => navigate('launcher') },
       { id: 'nav-profiles', label: t('nav.profiles'), category: t('palette.navigation'), action: () => navigate('profiles') },
       { id: 'nav-logs', label: t('nav.logs'), category: t('palette.navigation'), action: () => navigate('logs') },

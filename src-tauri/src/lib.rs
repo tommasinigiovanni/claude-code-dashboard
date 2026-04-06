@@ -5,6 +5,7 @@ mod dialog;
 mod hooks_manager;
 mod import_export;
 mod launcher;
+mod learning;
 mod logs;
 mod profiles;
 mod readers;
@@ -14,6 +15,7 @@ mod terminal;
 mod tray;
 mod types;
 mod usage;
+mod verification;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -75,6 +77,8 @@ pub fn run() {
             hooks_manager::read_hooks,
             hooks_manager::write_hooks,
             usage::read_usage_stats,
+            verification::run_verification,
+            learning::read_memories,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
