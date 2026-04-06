@@ -15,7 +15,7 @@ pub async fn run_verification(
 ) -> Result<VerificationResult, String> {
     let start = std::time::Instant::now();
 
-    let mut cmd = Command::new("claude");
+    let mut cmd = Command::new(&crate::launcher::find_claude_path());
     cmd.args(["--print"]);
     if let Some(ref path) = project_path {
         cmd.current_dir(path);

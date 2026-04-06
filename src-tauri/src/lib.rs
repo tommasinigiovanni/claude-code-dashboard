@@ -4,7 +4,7 @@ mod config;
 mod dialog;
 mod hooks_manager;
 mod import_export;
-mod launcher;
+pub mod launcher;
 mod learning;
 mod logs;
 mod profiles;

@@ -172,7 +172,7 @@ async fn run_claude_print(
     project_path: Option<&str>,
     skip_permissions: bool,
 ) -> Result<String, String> {
-    let mut cmd = Command::new("claude");
+    let mut cmd = Command::new(&crate::launcher::find_claude_path());
     cmd.args(["--print"]);
 
     if skip_permissions {

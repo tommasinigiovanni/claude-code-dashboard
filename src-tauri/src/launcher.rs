@@ -35,33 +35,41 @@ pub async fn open_folder(path: String) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub async fn check_claude_installed() -> Result<bool, String> {
-    // Check common paths where claude might be installed
+/// Find the claude binary path. Returns the full path or "claude" as fallback.
+pub fn find_claude_path() -> String {
     let common_paths = [
-        // User's local bin (npm global)
         dirs::home_dir().map(|h| h.join(".local/bin/claude")),
         dirs::home_dir().map(|h| h.join(".nvm/current/bin/claude")),
-        // System paths
         Some(std::path::PathBuf::from("/usr/local/bin/claude")),
         Some(std::path::PathBuf::from("/opt/homebrew/bin/claude")),
     ];
 
     for path in common_paths.iter().flatten() {
         if path.exists() {
-            return Ok(true);
+            return path.to_string_lossy().to_string();
         }
     }
 
-    // Fallback: try which with shell PATH
-    let output = Command::new("sh")
-        .args(["-lc", "which claude"])
-        .output();
-
-    match output {
-        Ok(o) => Ok(o.status.success()),
-        Err(_) => Ok(false),
+    // Fallback: try sh -lc which
+    if let Ok(output) = Command::new("sh").args(["-lc", "which claude"]).output() {
+        if output.status.success() {
+            let p = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !p.is_empty() {
+                return p;
+            }
+        }
     }
+
+    "claude".to_string()
+}
+
+#[tauri::command]
+pub async fn check_claude_installed() -> Result<bool, String> {
+    let path = find_claude_path();
+    Ok(path != "claude" || {
+        // Last resort: try running it
+        Command::new(&path).arg("--version").output().map(|o| o.status.success()).unwrap_or(false)
+    })
 }
 
 #[tauri::command]
@@ -69,7 +77,7 @@ pub async fn launch_claude_code(
     project_path: Option<String>,
     terminal_app: Option<String>,
 ) -> Result<(), String> {
-    let claude_cmd = "claude";
+    let claude_cmd = find_claude_path();
     let terminal = terminal_app.unwrap_or_else(|| "Terminal".to_string());
 
     #[cfg(target_os = "macos")]

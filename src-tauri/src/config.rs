@@ -260,7 +260,7 @@ pub async fn health_check_mcp() -> Result<Vec<(String, bool, String)>, String> {
     use std::io::BufRead;
 
     // Run claude -p with a simple prompt, parse the init event for MCP status
-    let mut child = std::process::Command::new("claude")
+    let mut child = std::process::Command::new(&crate::launcher::find_claude_path())
         .args(["--print", "--output-format", "stream-json", "--verbose"])
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
