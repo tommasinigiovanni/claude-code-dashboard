@@ -5,13 +5,14 @@ import { useI18n } from '@/i18n/useI18n'
 const changelog = `
 ## v1.2.0 — 2026-04-06
 
-**New Pages: Hooks, Usage, CLAUDE.md**
+**5 New Pages + Font Zoom**
 
-- 🔧 **Hooks Manager** — View/create/edit/delete Claude Code hooks visually with templates
-- 📊 **Cost & Usage Tracker** — Token usage, estimated costs, daily charts, per-project breakdown
-- 📝 **CLAUDE.md Editor** — View (rendered markdown) and Edit mode with templates
-- Reads tokens from interactive sessions (assistant messages) + --print results
-- Cost estimation based on Opus pricing
+- 🔧 **Hooks Manager** — View/create/edit/delete Claude Code hooks with templates
+- 📊 **Cost & Usage** — Token usage, estimated costs, daily charts, per-project breakdown
+- 📝 **CLAUDE.md Editor** — View (rendered markdown) / Edit mode with language templates
+- 🔄 **Verification Loop** — Run tests via Claude, pass/fail history, stats
+- 🧠 **Memories Viewer** — Browse learned memories across projects, filter by type
+- 🔤 **Cmd+/- font zoom** — Increase/decrease font size, Cmd+0 to reset
 
 ---
 

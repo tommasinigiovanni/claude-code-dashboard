@@ -159,6 +159,8 @@ Claude **ricorda il contesto** tra messaggi nella stessa conversazione. Usa \`/n
 |-------------|--------|
 | **Cmd+K** | Command Palette — cerca pagine e sessioni tmux |
 | **Cmd+1..8** | Naviga direttamente alle pagine (1=Launcher, 2=MCP, etc.) |
+| **Cmd+/Cmd-** | Aumenta/diminuisci dimensione caratteri |
+| **Cmd+0** | Ripristina dimensione caratteri |
 | **Click sul path** | Copia il percorso negli appunti |
 | **📂 su skill/plugin** | Apre la cartella nel Finder |
 | **Enter** | Invia messaggio nella chat |
@@ -354,6 +356,8 @@ Claude **remembers context** between messages in the same conversation. Use \`/n
 |----------|--------|
 | **Cmd+K** | Command Palette — search pages and tmux sessions |
 | **Cmd+1..8** | Navigate directly to pages (1=Launcher, 2=MCP, etc.) |
+| **Cmd+/Cmd-** | Increase/decrease font size |
+| **Cmd+0** | Reset font size |
 | **Click on path** | Copy path to clipboard |
 | **📂 on skill/plugin** | Open folder in Finder |
 | **Enter** | Send message in chat |

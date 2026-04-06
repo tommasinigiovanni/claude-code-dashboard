@@ -134,6 +134,23 @@ function App() {
         const idx = parseInt(e.key) - 1
         if (idx < pages.length) setActivePage(pages[idx])
       }
+      // Cmd+/- for font size
+      if ((e.metaKey || e.ctrlKey) && (e.key === '=' || e.key === '+')) {
+        e.preventDefault()
+        const html = document.documentElement
+        const current = parseFloat(getComputedStyle(html).fontSize)
+        html.style.fontSize = `${Math.min(current + 1, 24)}px`
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault()
+        const html = document.documentElement
+        const current = parseFloat(getComputedStyle(html).fontSize)
+        html.style.fontSize = `${Math.max(current - 1, 10)}px`
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '0') {
+        e.preventDefault()
+        document.documentElement.style.fontSize = ''
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
