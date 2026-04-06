@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +14,8 @@ import {
   SparklesIcon,
   GlobeIcon,
   FolderIcon,
+  EyeIcon,
+  PencilIcon,
 } from 'lucide-react'
 
 const TEMPLATES = {
@@ -98,6 +102,7 @@ type Tab = 'global' | 'project'
 export function ClaudeMdPage() {
   const { t, locale } = useI18n()
   const [tab, setTab] = useState<Tab>('global')
+  const [mode, setMode] = useState<'view' | 'edit'>('view')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -180,10 +185,32 @@ export function ClaudeMdPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">CLAUDE.md</h2>
-        <Button onClick={handleSave} disabled={saving || !hasChanges}>
-          <SaveIcon className="size-4 mr-1.5" />
-          {saving ? (locale === 'it' ? 'Salvataggio...' : 'Saving...') : (locale === 'it' ? 'Salva' : 'Save')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={() => setMode('view')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                mode === 'view' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+              }`}
+            >
+              <EyeIcon className="size-3" /> {locale === 'it' ? 'Anteprima' : 'View'}
+            </button>
+            <button
+              onClick={() => setMode('edit')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                mode === 'edit' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+              }`}
+            >
+              <PencilIcon className="size-3" /> {locale === 'it' ? 'Modifica' : 'Edit'}
+            </button>
+          </div>
+          {mode === 'edit' && (
+            <Button onClick={handleSave} disabled={saving || !hasChanges}>
+              <SaveIcon className="size-4 mr-1.5" />
+              {saving ? '...' : locale === 'it' ? 'Salva' : 'Save'}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -219,8 +246,8 @@ export function ClaudeMdPage() {
         )}
       </div>
 
-      {/* Templates */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Templates (edit mode only) */}
+      {mode === 'edit' && <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground uppercase tracking-wider">
           {locale === 'it' ? 'Template:' : 'Templates:'}
         </span>
@@ -235,9 +262,9 @@ export function ClaudeMdPage() {
             {locale === 'it' ? tmpl.labelIt : tmpl.label}
           </Button>
         ))}
-      </div>
+      </div>}
 
-      {/* Editor */}
+      {/* Editor / Viewer */}
       <div className="flex-1 min-h-0 rounded-xl border border-border bg-card overflow-hidden flex flex-col">
         <div className="flex items-center gap-3 p-3 border-b border-border">
           <FileEditIcon className="size-4 text-primary" />
@@ -248,6 +275,16 @@ export function ClaudeMdPage() {
         {loading ? (
           <div className="flex items-center justify-center flex-1 p-8">
             <p className="text-muted-foreground">{t('common.loading')}</p>
+          </div>
+        ) : mode === 'view' ? (
+          <div className="flex-1 overflow-auto p-6 prose prose-invert prose-sm max-w-none [&_table]:w-full [&_th]:text-left [&_th]:py-2 [&_th]:px-3 [&_th]:bg-muted/50 [&_th]:text-xs [&_td]:py-2 [&_td]:px-3 [&_td]:border-b [&_td]:border-border [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_blockquote]:border-l-primary [&_blockquote]:bg-primary/5 [&_blockquote]:py-2 [&_blockquote]:px-4 [&_blockquote]:rounded-r-lg">
+            {content ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            ) : (
+              <p className="text-muted-foreground italic">
+                {locale === 'it' ? 'Nessun contenuto. Passa a Modifica per iniziare.' : 'No content. Switch to Edit to get started.'}
+              </p>
+            )}
           </div>
         ) : (
           <Textarea
