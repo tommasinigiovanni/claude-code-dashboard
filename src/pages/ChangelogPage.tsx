@@ -3,6 +3,18 @@ import remarkGfm from 'remark-gfm'
 import { useI18n } from '@/i18n/useI18n'
 
 const changelog = `
+## v1.2.0 — 2026-04-06
+
+**New Pages: Hooks, Usage, CLAUDE.md**
+
+- 🔧 **Hooks Manager** — View/create/edit/delete Claude Code hooks visually with templates
+- 📊 **Cost & Usage Tracker** — Token usage, estimated costs, daily charts, per-project breakdown
+- 📝 **CLAUDE.md Editor** — View (rendered markdown) and Edit mode with templates
+- Reads tokens from interactive sessions (assistant messages) + --print results
+- Cost estimation based on Opus pricing
+
+---
+
 ## v1.1.0 — 2026-04-06
 
 **Security, Quality & Backup System**

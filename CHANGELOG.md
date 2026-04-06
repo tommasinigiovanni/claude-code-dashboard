@@ -2,6 +2,21 @@
 
 All notable changes to Claude Code Dashboard will be documented in this file.
 
+## [1.2.0] - 2026-04-06
+
+### Added
+- **Hooks Manager** — Visual editor for Claude Code hooks (PreToolUse, PostToolUse, etc.)
+  with template buttons (Prettier, TypeCheck, Lint)
+- **Cost & Usage Tracker** — Token usage and estimated cost per project/day
+  from interactive sessions and --print mode, with CSS bar charts
+- **CLAUDE.md Editor** — View (rendered markdown) / Edit toggle for
+  Global and Project CLAUDE.md files with language templates
+
+### Fixed
+- Usage tracker now reads tokens from assistant message.usage fields
+  (interactive sessions don't have "result" entries)
+- Cost estimation based on Opus pricing ($15/M in, $75/M out)
+
 ## [1.1.0] - 2026-04-06
 
 ### Security
