@@ -37,12 +37,31 @@ pub async fn open_folder(path: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn check_claude_installed() -> Result<bool, String> {
-    let output = Command::new("which")
-        .arg("claude")
-        .output()
-        .map_err(|e| format!("Failed to check claude: {}", e))?;
+    // Check common paths where claude might be installed
+    let common_paths = [
+        // User's local bin (npm global)
+        dirs::home_dir().map(|h| h.join(".local/bin/claude")),
+        dirs::home_dir().map(|h| h.join(".nvm/current/bin/claude")),
+        // System paths
+        Some(std::path::PathBuf::from("/usr/local/bin/claude")),
+        Some(std::path::PathBuf::from("/opt/homebrew/bin/claude")),
+    ];
 
-    Ok(output.status.success())
+    for path in common_paths.iter().flatten() {
+        if path.exists() {
+            return Ok(true);
+        }
+    }
+
+    // Fallback: try which with shell PATH
+    let output = Command::new("sh")
+        .args(["-lc", "which claude"])
+        .output();
+
+    match output {
+        Ok(o) => Ok(o.status.success()),
+        Err(_) => Ok(false),
+    }
 }
 
 #[tauri::command]
