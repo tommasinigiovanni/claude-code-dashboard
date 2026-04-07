@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { openFolder, togglePlugin } from '@/services/api'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/store/configStore'
 import { useI18n } from '@/i18n/useI18n'
@@ -17,7 +17,7 @@ function OpenFolderButton({ path }: { path: string }) {
   const { t } = useI18n()
   return (
     <Button variant="ghost" size="sm" onClick={async () => {
-      try { await invoke('open_folder', { path }) } catch (e) { toast.error(`${t('common.error')}: ${e}`) }
+      try { await openFolder(path) } catch (e) { toast.error(`${t('common.error')}: ${e}`) }
     }} title="Open folder">
       <FolderOpenIcon className="size-4 text-muted-foreground" />
     </Button>
@@ -38,7 +38,7 @@ export function SkillsPage() {
   const handleTogglePlugin = async (pluginName: string, marketplace: string, currentEnabled: boolean) => {
     const pluginId = `${pluginName}@${marketplace}`
     try {
-      await invoke('toggle_plugin', { pluginId, enabled: !currentEnabled })
+      await togglePlugin(pluginId, !currentEnabled)
       toast.success(`Plugin "${pluginName}" ${!currentEnabled ? t('common.activated') : t('common.deactivated')}`)
       await loadConfigs()
     } catch (e) {

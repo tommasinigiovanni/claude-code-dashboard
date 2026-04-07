@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { readSessionLogs } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -56,10 +56,7 @@ export function LogsPage() {
   const loadLogs = async () => {
     setLoading(true)
     try {
-      const result = await invoke<LogEntry[]>('read_session_logs', {
-        projectPath: projectPath ?? null,
-        maxEntries: 200,
-      })
+      const result = await readSessionLogs(projectPath ?? null, 200)
       setLogs(result)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)

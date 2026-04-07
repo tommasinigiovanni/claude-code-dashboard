@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { listProfiles, saveProfile, loadProfile, deleteProfile } from '@/services/api'
+import type { Profile } from '@/services/transport'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,12 +19,6 @@ import {
   UserCircleIcon, CalendarIcon, UploadIcon, TrashIcon,
   FolderOpenIcon, AlertTriangleIcon,
 } from 'lucide-react'
-
-interface Profile {
-  name: string
-  description: string
-  created_at: string
-}
 
 function formatRelativeDate(dateStr: string, locale: string): string {
   // Handle both seconds and milliseconds timestamps
@@ -56,7 +51,7 @@ export function ProfilesPage() {
   const loadProfiles = async () => {
     setLoading(true)
     try {
-      const result = await invoke<Profile[]>('list_profiles')
+      const result = await listProfiles()
       setProfiles(result)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)
@@ -73,7 +68,7 @@ export function ProfilesPage() {
     if (!newName.trim()) return
     setSaving(true)
     try {
-      await invoke('save_profile', { name: newName.trim(), description: newDescription.trim() })
+      await saveProfile(newName.trim(), newDescription.trim())
       toast.success(t('profiles.saved'))
       setSaveDialogOpen(false)
       setNewName('')
@@ -88,7 +83,7 @@ export function ProfilesPage() {
 
   const handleLoad = async (name: string) => {
     try {
-      await invoke('load_profile', { name })
+      await loadProfile(name)
       toast.success(t('profiles.loaded'))
       setConfirmDialog(null)
     } catch (e) {
@@ -98,7 +93,7 @@ export function ProfilesPage() {
 
   const handleDelete = async (name: string) => {
     try {
-      await invoke('delete_profile', { name })
+      await deleteProfile(name)
       toast.success(`${name} ${t('common.removed')}`)
       setConfirmDialog(null)
       loadProfiles()

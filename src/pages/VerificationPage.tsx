@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { runVerification as apiRunVerification } from '@/services/api'
 import { useConfigStore } from '@/store/configStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,12 +15,6 @@ import {
   TrashIcon,
   BarChart3Icon,
 } from 'lucide-react'
-
-interface VerificationResult {
-  output: string
-  success: boolean
-  duration_ms: number
-}
 
 interface HistoryEntry {
   id: string
@@ -64,10 +58,7 @@ export function VerificationPage() {
     setSelectedEntry(null)
 
     try {
-      const result = await invoke<VerificationResult>('run_verification', {
-        prompt: prompt.trim(),
-        projectPath,
-      })
+      const result = await apiRunVerification(prompt.trim(), projectPath)
       setCurrentOutput(result.output)
       setCurrentSuccess(result.success)
 

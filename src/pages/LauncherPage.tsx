@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import {
+  listTmuxSessions, killTmuxSession, tmuxSessionCwd,
+  checkClaudeInstalled, launchClaudeCode, pickDirectory,
+} from '@/services/api'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/store/configStore'
 import { Button } from '@/components/ui/button'
@@ -13,11 +16,7 @@ import { Input } from '@/components/ui/input'
 
 async function fetchTmuxSessions(): Promise<TmuxSession[]> {
   const ssh = getSshConfig()
-  if (ssh) {
-    const data = await invoke<[string, boolean, number, string][]>('ssh_tmux_list_sessions', { config: ssh })
-    return data.map(([name, attached, windows, created]) => ({ name, attached, windows, created }))
-  }
-  return invoke<TmuxSession[]>('tmux_list_sessions')
+  return listTmuxSessions(ssh)
 }
 
 interface TmuxSession {
@@ -38,11 +37,7 @@ function TmuxSessions({ onAttach }: { onAttach: (name: string) => void }) {
   const handleKill = async (name: string) => {
     try {
       const ssh = getSshConfig()
-      if (ssh) {
-        await invoke('ssh_tmux_kill_session', { config: ssh, sessionName: name })
-      } else {
-        await invoke('tmux_kill_session', { sessionName: name })
-      }
+      await killTmuxSession(name, ssh)
       setSessions((prev) => prev.filter((s) => s.name !== name))
       toast.success(`"${name}" ${t('common.terminated')}`)
     } catch (e) {
@@ -191,7 +186,7 @@ export function LauncherPage() {
   const isChat = settings.terminalApp === 'chat'
 
   useEffect(() => {
-    invoke<boolean>('check_claude_installed').then(setClaudeInstalled).catch(() => setClaudeInstalled(false))
+    checkClaudeInstalled().then(setClaudeInstalled).catch(() => setClaudeInstalled(false))
     // Use remote recent projects when SSH is active, local otherwise
     if (getSshConfig()) {
       // recentProjects from store are already loaded from VM
@@ -236,7 +231,7 @@ export function LauncherPage() {
       const terminalApp = settings.terminalApp === 'custom'
         ? settings.customTerminalPath
         : settings.terminalApp
-      await invoke('launch_claude_code', { projectPath: targetPath, terminalApp })
+      await launchClaudeCode(targetPath, terminalApp)
       if (targetPath) {
         addRecentLaunch(targetPath)
         setRecentLaunches(getRecentLaunches())
@@ -251,7 +246,7 @@ export function LauncherPage() {
 
   const handleSelectAndLaunch = async () => {
     try {
-      const selected = await invoke<string | null>('pick_directory')
+      const selected = await pickDirectory()
       if (selected) {
         await handleLaunch(selected)
       }
@@ -270,7 +265,7 @@ export function LauncherPage() {
               activeSession={tmuxAttachSession}
               onSwitch={async (name) => {
                 try {
-                  const cwd = await invoke<string | null>('tmux_session_cwd', { sessionName: name })
+                  const cwd = await tmuxSessionCwd(name)
                   if (cwd) setLaunchPath(cwd)
                 } catch { /* ignore */ }
                 setTmuxAttachSession(name)
@@ -397,7 +392,7 @@ export function LauncherPage() {
       {settings.useTmux && <TmuxSessions onAttach={async (name) => {
         // Get the working directory from the tmux session
         try {
-          const cwd = await invoke<string | null>('tmux_session_cwd', { sessionName: name })
+          const cwd = await tmuxSessionCwd(name)
           if (cwd) setLaunchPath(cwd)
         } catch { /* ignore */ }
         setTmuxAttachSession(name)

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { checkClaudeInstalled } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n/useI18n'
 import { useUiStore } from '@/store/uiStore'
@@ -44,7 +44,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       descIt: 'Verifichiamo che Claude Code sia installato sul tuo sistema...',
       descEn: 'Let\'s check that Claude Code is installed on your system...',
       action: () => {
-        invoke<boolean>('check_claude_installed')
+        checkClaudeInstalled()
           .then(setClaudeInstalled)
           .catch(() => setClaudeInstalled(false))
       },

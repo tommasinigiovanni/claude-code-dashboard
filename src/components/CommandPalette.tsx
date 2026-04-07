@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { listTmuxSessions, tmuxSessionCwd } from '@/services/api'
 import { useUiStore, type Page } from '@/store/uiStore'
 import {
   Dialog,
@@ -13,13 +13,6 @@ interface CommandItem {
   label: string
   category: string
   action: () => void
-}
-
-interface TmuxSession {
-  name: string
-  attached: boolean
-  windows: number
-  created: string
 }
 
 interface CommandPaletteProps {
@@ -68,7 +61,7 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
     ]
 
     // Load tmux sessions
-    invoke<TmuxSession[]>('tmux_list_sessions')
+    listTmuxSessions()
       .then((sessions) => {
         const tmuxItems: CommandItem[] = sessions.map((s) => ({
           id: `tmux-${s.name}`,
@@ -77,7 +70,7 @@ export function CommandPalette({ open, onOpenChange, onTmuxAttach }: CommandPale
           action: async () => {
             let cwd: string | null = null
             try {
-              cwd = await invoke<string | null>('tmux_session_cwd', { sessionName: s.name })
+              cwd = await tmuxSessionCwd(s.name)
             } catch { /* ignore */ }
             onTmuxAttach?.(s.name, cwd)
             onOpenChange(false)

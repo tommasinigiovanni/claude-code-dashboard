@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { autoBackup, telegramBotStatus, telegramStartBot } from '@/services/api'
 import { getSettings } from '@/pages/SettingsPage'
 import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -99,18 +99,17 @@ function App() {
 
   // Auto-backup on app start
   useEffect(() => {
-    invoke('auto_backup').catch(() => {})
+    autoBackup().catch(() => {})
   }, [])
 
   // Auto-start Telegram bot if configured
   useEffect(() => {
     const settings = getSettings()
     if (settings.telegramBotToken) {
-      invoke('telegram_bot_status').then((status: unknown) => {
-        const s = status as { running: boolean }
+      telegramBotStatus().then((s) => {
         if (!s.running) {
           const chatId = settings.telegramChatId ? parseInt(settings.telegramChatId) : null
-          invoke('telegram_start_bot', {
+          telegramStartBot({
             botToken: settings.telegramBotToken,
             allowedChatId: chatId || null,
             projectPath: null,

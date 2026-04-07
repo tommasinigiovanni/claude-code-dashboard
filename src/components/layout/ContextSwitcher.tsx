@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
+import { pickDirectory } from '@/services/api'
 import { useConfigStore } from '@/store/configStore'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import { useI18n } from '@/i18n/useI18n'
@@ -26,7 +26,7 @@ export function ContextSwitcher() {
     if (isRemote) return // handled by input below
     setTimeout(async () => {
       try {
-        const selected = await invoke<string | null>('pick_directory')
+        const selected = await pickDirectory()
         if (selected) {
           switchToProject(selected)
         }

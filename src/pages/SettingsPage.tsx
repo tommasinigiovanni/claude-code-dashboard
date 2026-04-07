@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import {
+  sshTestConnection, telegramBotStatus, telegramStartBot, telegramStopBot,
+  listBackups, autoBackup, restoreBackup, deleteBackup,
+} from '@/services/api'
+import type { SshConfig } from '@/services/transport'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -162,9 +166,8 @@ function SshProfileManager({
   const handleTest = async (profile: SshProfile) => {
     setTesting(true); setTestResult(null)
     try {
-      const result = await invoke<string>('ssh_test_connection', {
-        config: { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null },
-      })
+      const config: SshConfig = { name: profile.name, host: profile.host, port: profile.port, user: profile.user, key_path: profile.keyPath || null }
+      const result = await sshTestConnection(config)
       if (result.startsWith('connected:')) {
         setTestResult(`✅ ${locale === 'it' ? 'Connesso' : 'Connected'} — Claude ${result.split(':')[1]}`)
       } else {
@@ -267,7 +270,7 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
   const [starting, setStarting] = useState(false)
 
   useEffect(() => {
-    invoke<{ running: boolean; bot_name: string | null }>('telegram_bot_status')
+    telegramBotStatus()
       .then((s) => { setBotRunning(s.running); setBotName(s.bot_name) })
       .catch(() => {})
   }, [])
@@ -277,7 +280,7 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
     setStarting(true)
     try {
       const chatId = settings.telegramChatId ? parseInt(settings.telegramChatId) : undefined
-      const result = await invoke<{ running: boolean; bot_name: string | null }>('telegram_start_bot', {
+      const result = await telegramStartBot({
         botToken: settings.telegramBotToken, allowedChatId: chatId || null, projectPath: null, autoApprove: false,
       })
       setBotRunning(result.running); setBotName(result.bot_name ?? null)
@@ -287,7 +290,7 @@ function TelegramBotControls({ settings, locale }: { settings: DashboardSettings
   }
 
   const handleStop = async () => {
-    try { await invoke('telegram_stop_bot'); setBotRunning(false); setBotName(null); toast.success(locale === 'it' ? 'Bot fermato' : 'Bot stopped') }
+    try { await telegramStopBot(); setBotRunning(false); setBotName(null); toast.success(locale === 'it' ? 'Bot fermato' : 'Bot stopped') }
     catch (e) { toast.error(`Error: ${e}`) }
   }
 
@@ -315,7 +318,7 @@ function BackupSection({ locale }: { locale: string }) {
   const [backups, setBackups] = useState<{ filename: string; timestamp: number; size_bytes: number }[]>([])
 
   const loadBackups = () => {
-    invoke<{ filename: string; timestamp: number; size_bytes: number }[]>('list_backups')
+    listBackups()
       .then(setBackups)
       .catch(() => {})
   }
@@ -324,7 +327,7 @@ function BackupSection({ locale }: { locale: string }) {
 
   const handleCreate = async () => {
     try {
-      const result = await invoke<string>('auto_backup')
+      const result = await autoBackup()
       toast.success(`Backup: ${result}`)
       loadBackups()
     } catch (e) {
@@ -338,7 +341,7 @@ function BackupSection({ locale }: { locale: string }) {
       : `Restore ${filename}? Current configuration will be overwritten.`
     if (!window.confirm(msg)) return
     try {
-      await invoke('restore_backup', { filename })
+      await restoreBackup(filename)
       toast.success(locale === 'it' ? 'Backup ripristinato' : 'Backup restored')
     } catch (e) {
       toast.error(`Error: ${e}`)
@@ -347,7 +350,7 @@ function BackupSection({ locale }: { locale: string }) {
 
   const handleDelete = async (filename: string) => {
     try {
-      await invoke('delete_backup', { filename })
+      await deleteBackup(filename)
       toast.success(locale === 'it' ? 'Backup eliminato' : 'Backup deleted')
       loadBackups()
     } catch (e) {

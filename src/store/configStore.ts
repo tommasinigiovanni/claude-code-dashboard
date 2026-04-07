@@ -1,11 +1,13 @@
 import { create } from 'zustand'
-import { invoke } from '@tauri-apps/api/core'
+import {
+  readConfig, writeConfig as apiWriteConfig, readDashboardData, readProjectExtras,
+  sshReadConfig, sshWriteConfig, sshReadDashboardData,
+} from '@/services/api'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import type {
   ClaudeConfig,
   ConfigScope,
   CloudMcpConnector,
-  DashboardData,
   InstalledPlugin,
   LocalAgent,
   LocalSkill,
@@ -122,26 +124,17 @@ async function writeConfig(state: ConfigState, scope: ConfigScope, config: Claud
       : '~/.claude/settings.json'
 
     // Read existing remote config, merge, write back
-    const existingJson = await invoke<string>('ssh_read_config', { config: sshConfig, remotePath })
+    const existingJson = await sshReadConfig(sshConfig, remotePath)
     const existing = JSON.parse(existingJson || '{}')
 
     if (config.mcpServers !== undefined) existing.mcpServers = config.mcpServers
     if (config.agents !== undefined) existing.agents = config.agents
     if (config.skills !== undefined) existing.skills = config.skills
 
-    await invoke('ssh_write_config', {
-      config: sshConfig,
-      remotePath,
-      content: JSON.stringify(existing, null, 2),
-    })
+    await sshWriteConfig(sshConfig, remotePath, JSON.stringify(existing, null, 2))
   } else {
     // Local
-    const args = {
-      scope,
-      ...(scope === 'project' ? { projectPath: state.projectPath } : {}),
-      config,
-    }
-    await invoke('write_config', args)
+    await apiWriteConfig(scope, config, scope === 'project' ? state.projectPath ?? undefined : undefined)
   }
 }
 
@@ -183,9 +176,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
       if (sshConfig) {
         // SSH mode: read all data from remote machine in one call
-        const remoteData = await invoke<DashboardData & { tmuxSessions?: unknown[] }>('ssh_read_dashboard_data', {
-          config: sshConfig,
-        })
+        const remoteData = await sshReadDashboardData(sshConfig)
 
         const globalConfig = remoteData.config || {}
         const merged = mergeConfigs(globalConfig, null, 'global')
@@ -205,16 +196,13 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       }
 
       // Local mode: load full dashboard data
-      const dashboardData = await invoke<DashboardData>('read_dashboard_data')
+      const dashboardData = await readDashboardData()
 
       const globalConfig = dashboardData.config
 
       let projectConfig: ClaudeConfig | null = null
       if (mode === 'project' && projectPath) {
-        projectConfig = await invoke<ClaudeConfig>('read_config', {
-          scope: 'project',
-          projectPath,
-        })
+        projectConfig = await readConfig('project', projectPath)
       }
 
       const merged = mergeConfigs(globalConfig, projectConfig, mode)
@@ -223,10 +211,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       let allLocalSkills = dashboardData.localSkills
       if (mode === 'project' && projectPath) {
         try {
-          const [projectSkills] = await invoke<[LocalSkill[], LocalSkill[]]>(
-            'read_project_extras',
-            { projectPath }
-          )
+          const [projectSkills] = await readProjectExtras(projectPath)
           allLocalSkills = [
             ...allLocalSkills,
             ...projectSkills.map((s) => ({ ...s, plugin: 'project' })),

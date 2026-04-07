@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { readUsageStats } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -30,7 +30,7 @@ export function UsagePage() {
   const loadUsage = async () => {
     setLoading(true)
     try {
-      const data = await invoke<UsageEntry[]>('read_usage_stats')
+      const data = await readUsageStats()
       setEntries(data)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)

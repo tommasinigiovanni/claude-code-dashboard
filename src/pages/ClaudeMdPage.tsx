@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { writeAgentFile, readAgentFile, getClaudeHome } from '@/services/api'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Button } from '@/components/ui/button'
@@ -112,7 +112,7 @@ export function ClaudeMdPage() {
 
   // Resolve ~/.claude path once
   useEffect(() => {
-    invoke<string>('get_claude_home')
+    getClaudeHome()
       .then(setClaudeHome)
       .catch(() => {})
   }, [])
@@ -136,7 +136,7 @@ export function ClaudeMdPage() {
 
     setLoading(true)
     try {
-      const text = await invoke<string>('read_agent_file', { path: filePath })
+      const text = await readAgentFile(filePath)
       setContent(text)
       setHasChanges(false)
     } catch {
@@ -160,7 +160,7 @@ export function ClaudeMdPage() {
 
     setSaving(true)
     try {
-      await invoke('write_agent_file', { path: filePath, content })
+      await writeAgentFile(filePath, content)
       setHasChanges(false)
       toast.success(locale === 'it' ? 'CLAUDE.md salvato' : 'CLAUDE.md saved')
     } catch (e) {

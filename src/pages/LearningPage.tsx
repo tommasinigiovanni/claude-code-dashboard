@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { readMemories } from '@/services/api'
 import { useConfigStore } from '@/store/configStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,9 +49,7 @@ export function LearningPage() {
   const loadMemories = async () => {
     setLoading(true)
     try {
-      const data = await invoke<MemoryFile[]>('read_memories', {
-        projectPath: null, // Load all
-      })
+      const data = await readMemories(null)
       setMemories(data)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)

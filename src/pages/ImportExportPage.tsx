@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { exportConfig, importConfig } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -23,7 +23,7 @@ export function ImportExportPage() {
   const handleExport = async () => {
     setExporting(true)
     try {
-      const json = await invoke<string>('export_config')
+      const json = await exportConfig()
       await navigator.clipboard.writeText(json)
       toast.success(locale === 'it' ? 'Configurazione copiata negli appunti' : 'Configuration copied to clipboard')
     } catch (e) {
@@ -36,7 +36,7 @@ export function ImportExportPage() {
   const handleExportDownload = async () => {
     setExporting(true)
     try {
-      const json = await invoke<string>('export_config')
+      const json = await exportConfig()
       const blob = new Blob([json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -56,7 +56,7 @@ export function ImportExportPage() {
     if (!importJson.trim()) return
     setImporting(true)
     try {
-      const result = await invoke<string>('import_config', { bundleJson: importJson.trim() })
+      const result = await importConfig(importJson.trim())
       toast.success(result || (locale === 'it' ? 'Configurazione importata' : 'Configuration imported'))
       setImportDialogOpen(false)
       setImportJson('')

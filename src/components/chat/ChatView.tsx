@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { chatStart, chatSend, chatApprove, saveTempImage, onChatEvent } from '@/services/api'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -13,12 +12,6 @@ interface ChatMessage {
   content: string
   images?: string[]
   timestamp: Date
-}
-
-interface ChatEvent {
-  session_id: string
-  event_type: string
-  content: string
 }
 
 interface ChatViewProps {
@@ -101,14 +94,11 @@ export function ChatView({ projectPath }: ChatViewProps) {
         // Check for active SSH profile
         const sshConfig = getSshConfig()
 
-        const sid = await invoke<string>('chat_start', {
-          projectPath: projectPath ?? undefined,
-          sshConfig,
-        })
+        const sid = await chatStart(projectPath ?? undefined, sshConfig)
         setSessionId(sid)
 
-        unlisten = await listen<ChatEvent>(`chat-event-${sid}`, (event) => {
-          const { event_type, content } = event.payload
+        const sub = await onChatEvent(sid, (payload) => {
+          const { event_type, content } = payload
 
           switch (event_type) {
             case 'waiting':
@@ -154,7 +144,8 @@ export function ChatView({ projectPath }: ChatViewProps) {
               setIsLoading(false)
               break
           }
-        }) as unknown as () => void
+        })
+        unlisten = () => sub.unsubscribe()
       } catch (e) {
         setMessages((prev) => [
           ...prev,
@@ -177,10 +168,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
       const buffer = await file.arrayBuffer()
       const ext = file.name.split('.').pop() || 'png'
       try {
-        const path = await invoke<string>('save_temp_image', {
-          data: Array.from(new Uint8Array(buffer)),
-          extension: ext,
-        })
+        const path = await saveTempImage(Array.from(new Uint8Array(buffer)), ext)
         setAttachedImages((prev) => [...prev, { path, name: file.name }])
       } catch (e) {
         console.error('Failed to save image:', e)
@@ -199,10 +187,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
           const buffer = await file.arrayBuffer()
           const ext = file.type.split('/')[1] || 'png'
           try {
-            const path = await invoke<string>('save_temp_image', {
-              data: Array.from(new Uint8Array(buffer)),
-              extension: ext,
-            })
+            const path = await saveTempImage(Array.from(new Uint8Array(buffer)), ext)
             setAttachedImages((prev) => [...prev, { path, name: `screenshot.${ext}` }])
           } catch (e) {
             console.error('Failed to save pasted image:', e)
@@ -234,7 +219,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
     ])
 
     try {
-      await invoke('chat_send', { sessionId, message: fullMessage })
+      await chatSend(sessionId, fullMessage)
     } catch (e) {
       setMessages((prev) => [
         ...prev,
@@ -259,7 +244,7 @@ export function ChatView({ projectPath }: ChatViewProps) {
     ])
 
     try {
-      await invoke('chat_approve', { sessionId, approved })
+      await chatApprove(sessionId, approved)
     } catch (e) {
       console.error('Approve error:', e)
     }

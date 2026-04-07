@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { readHooks, writeHooks } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -97,7 +97,7 @@ export function HooksPage() {
 
   const loadHooks = async () => {
     try {
-      const data = await invoke<HooksData>('read_hooks')
+      const data = await readHooks()
       setHooks(data ?? {})
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)
@@ -110,7 +110,7 @@ export function HooksPage() {
 
   const saveHooks = async (newHooks: HooksData) => {
     try {
-      await invoke('write_hooks', { hooks: newHooks })
+      await writeHooks(newHooks)
       setHooks(newHooks)
       toast.success(locale === 'it' ? 'Hooks salvati' : 'Hooks saved')
     } catch (e) {

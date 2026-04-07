@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { listTmuxSessions } from '@/services/api'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import { useUiStore, type Page } from '@/store/uiStore'
 import { useI18n } from '@/i18n/useI18n'
@@ -76,13 +76,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const check = async () => {
       try {
         const ssh = getSshConfig()
-        if (ssh) {
-          const data = await invoke<[string, boolean, number, string][]>('ssh_tmux_list_sessions', { config: ssh })
-          setHasActiveSessions(data.length > 0)
-        } else {
-          const sessions = await invoke<{ name: string }[]>('tmux_list_sessions')
-          setHasActiveSessions(sessions.length > 0)
-        }
+        const sessions = await listTmuxSessions(ssh)
+        setHasActiveSessions(sessions.length > 0)
       } catch { setHasActiveSessions(false) }
     }
     check()

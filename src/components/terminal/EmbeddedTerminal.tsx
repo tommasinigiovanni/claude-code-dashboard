@@ -3,8 +3,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
-import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { terminalSpawn, terminalWrite, terminalResize, onTerminalOutput } from '@/services/api'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import { Button } from '@/components/ui/button'
 
@@ -25,11 +24,7 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
     const term = xtermRef.current
     const sid = sessionIdRef.current
     if (term && sid) {
-      invoke('terminal_resize', {
-        sessionId: sid,
-        rows: term.rows,
-        cols: term.cols,
-      }).catch(console.error)
+      terminalResize(sid, term.rows, term.cols).catch(console.error)
     }
   }, [])
 
@@ -41,7 +36,7 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
       // Check for active SSH profile
       const sshConfig = getSshConfig()
 
-      const id = await invoke<string>('terminal_spawn', {
+      const id = await terminalSpawn({
         projectPath: projectPath ?? undefined,
         useTmux: useTmux ?? false,
         tmuxAttachSession: tmuxAttachSession ?? undefined,
@@ -50,8 +45,8 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
       sessionIdRef.current = id
 
       // Listen for output
-      await listen<string>(`terminal-output-${id}`, (event) => {
-        xtermRef.current?.write(event.payload)
+      await onTerminalOutput(id, (data) => {
+        xtermRef.current?.write(data)
       })
 
       // Send initial resize
@@ -92,7 +87,7 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
     terminal.onData((data) => {
       const sid = sessionIdRef.current
       if (sid) {
-        invoke('terminal_write', { sessionId: sid, data }).catch(console.error)
+        terminalWrite(sid, data).catch(console.error)
       }
     })
 
@@ -100,7 +95,7 @@ export function EmbeddedTerminal({ projectPath, useTmux, tmuxAttachSession }: Em
     terminal.onResize(({ rows, cols }) => {
       const sid = sessionIdRef.current
       if (sid) {
-        invoke('terminal_resize', { sessionId: sid, rows, cols }).catch(console.error)
+        terminalResize(sid, rows, cols).catch(console.error)
       }
     })
 

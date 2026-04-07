@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { healthCheckMcp } from '@/services/api'
 import { getSshConfig } from '@/hooks/useSshConfig'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -43,15 +43,7 @@ export function HealthPage() {
     setLoading(true)
     try {
       const sshConfig = getSshConfig()
-
-      let data: [string, boolean, string][]
-      if (sshConfig) {
-        data = await invoke<[string, boolean, string][]>('ssh_health_check_mcp', {
-          config: sshConfig,
-        })
-      } else {
-        data = await invoke<[string, boolean, string][]>('health_check_mcp')
-      }
+      const data = await healthCheckMcp(sshConfig)
       setResults(data.map(([name, connected, status]) => ({ name, connected, status })))
       setHasRun(true)
       setLastCheck(new Date())

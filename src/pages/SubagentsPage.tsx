@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { readAgentFile, writeAgentFile, deleteAgentFile } from '@/services/api'
 import { toast } from 'sonner'
 import { useConfigStore } from '@/store/configStore'
 import type { SubAgentUI, LocalAgent } from '@/types/claude'
@@ -94,7 +94,7 @@ function AgentFileEditor({
     if (!agent) return
     setLoading(true)
     try {
-      const text = await invoke<string>('read_agent_file', { path: agent.path })
+      const text = await readAgentFile(agent.path)
       setContent(text)
     } catch (e) {
       toast.error(`${t('common.error')}: ${e}`)
@@ -107,7 +107,7 @@ function AgentFileEditor({
     if (!agent) return
     setSaving(true)
     try {
-      await invoke('write_agent_file', { path: agent.path, content })
+      await writeAgentFile(agent.path, content)
       toast.success(`Agent "${agent.name}" ${t('common.updated')}`)
       onOpenChange(false)
       await loadConfigs()
@@ -188,7 +188,7 @@ export function SubagentsPage() {
 
   const handleDeleteFile = async (agent: LocalAgent) => {
     try {
-      await invoke('delete_agent_file', { path: agent.path })
+      await deleteAgentFile(agent.path)
       toast.success(`Agent "${agent.name}" ${t('common.removed')}`)
       await loadConfigs()
     } catch (e) {
