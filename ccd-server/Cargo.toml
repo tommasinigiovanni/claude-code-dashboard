@@ -1,0 +1,14 @@
+[package]
+name = "ccd-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ccd-core = { path = "../ccd-core" }
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["fs", "cors"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive", "env"] }
+futures = "0.3"
