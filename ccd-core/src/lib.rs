@@ -1,4 +1,5 @@
 pub mod backup;
+pub mod config;
 pub mod events;
 pub mod hooks;
 pub mod import_export;
@@ -7,6 +8,7 @@ pub mod learning;
 pub mod logs;
 pub mod profiles;
 pub mod readers;
+pub mod ssh;
 pub mod types;
 pub mod usage;
 pub mod verification;
