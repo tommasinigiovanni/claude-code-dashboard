@@ -10,6 +10,7 @@ pub mod logs;
 pub mod profiles;
 pub mod readers;
 pub mod ssh;
+pub mod telegram;
 pub mod terminal;
 pub mod types;
 pub mod usage;
