@@ -1,3 +1,12 @@
+pub mod backup;
 pub mod events;
+pub mod hooks;
+pub mod import_export;
+pub mod launcher;
+pub mod learning;
+pub mod logs;
+pub mod profiles;
 pub mod readers;
 pub mod types;
+pub mod usage;
+pub mod verification;
