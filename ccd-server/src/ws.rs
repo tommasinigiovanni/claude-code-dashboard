@@ -217,7 +217,8 @@ async fn handle_command(
             let allowed_chat_id = params.get("allowedChatId").and_then(|v| if v.is_null() { None } else { v.as_i64() });
             let project_path = params.get("projectPath").and_then(|v| if v.is_null() { None } else { v.as_str() }).map(|s| s.to_string());
             let auto_approve = params.get("autoApprove").and_then(|v| v.as_bool());
-            let result = ccd_core::telegram::telegram_start_bot(emitter.clone(), bot_token, allowed_chat_id, project_path, auto_approve).await?;
+            let dashboard_url = params.get("dashboardUrl").and_then(|v| if v.is_null() { None } else { v.as_str() }).map(|s| s.to_string());
+            let result = ccd_core::telegram::telegram_start_bot(emitter.clone(), bot_token, allowed_chat_id, project_path, auto_approve, dashboard_url).await?;
             serde_json::to_value(result).map_err(|e| e.to_string())
         }
         "telegram_stop_bot" => {

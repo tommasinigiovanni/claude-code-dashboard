@@ -229,6 +229,7 @@ pub async fn telegram_start_bot(
     allowed_chat_id: Option<i64>,
     project_path: Option<String>,
     auto_approve: Option<bool>,
+    dashboard_url: Option<String>,
 ) -> Result<TelegramBotStatus, String> {
     if BOT_RUNNING.load(Ordering::Relaxed) {
         return Err("Bot is already running".to_string());
@@ -271,6 +272,21 @@ pub async fn telegram_start_bot(
         .send()
         .await;
 
+    // Register Mini App menu button if dashboard URL is provided
+    if let Some(ref url) = dashboard_url {
+        let _ = client
+            .post(&format!("https://api.telegram.org/bot{}/setChatMenuButton", bot_token))
+            .json(&serde_json::json!({
+                "menu_button": {
+                    "type": "web_app",
+                    "text": "Dashboard",
+                    "web_app": { "url": url }
+                }
+            }))
+            .send()
+            .await;
+    }
+
     BOT_RUNNING.store(true, Ordering::Relaxed);
 
     emitter.emit(
@@ -286,6 +302,7 @@ pub async fn telegram_start_bot(
     let token = bot_token.clone();
     let project = project_path.clone();
     let skip_permissions = auto_approve.unwrap_or(false);
+    let dashboard_url_clone = dashboard_url.clone();
     tokio::spawn(async move {
         let client = reqwest::Client::new();
         let mut offset: i64 = 0;
@@ -349,11 +366,34 @@ pub async fn telegram_start_bot(
                                         (format!("🔄 {}", short), format!("switch:{}", sess)),
                                     ]);
                                 }
-                                let _ = send_telegram_with_buttons(
-                                    &client, &token, msg.chat.id,
-                                    "🤖 *Claude Code Dashboard*\n\nInvia un messaggio per parlare con Claude Code.\nUsa i bottoni per navigare.",
-                                    buttons,
-                                ).await;
+
+                                let mut keyboard: Vec<Vec<serde_json::Value>> = buttons
+                                    .iter()
+                                    .map(|row| {
+                                        row.iter()
+                                            .map(|(label, data)| {
+                                                serde_json::json!({"text": label, "callback_data": data})
+                                            })
+                                            .collect()
+                                    })
+                                    .collect();
+
+                                if let Some(ref url) = dashboard_url_clone {
+                                    keyboard.insert(0, vec![
+                                        serde_json::json!({"text": "📊 Open Dashboard", "web_app": {"url": url}})
+                                    ]);
+                                }
+
+                                let _ = client
+                                    .post(&format!("https://api.telegram.org/bot{}/sendMessage", token))
+                                    .json(&serde_json::json!({
+                                        "chat_id": msg.chat.id,
+                                        "text": "🤖 *Claude Code Dashboard*\n\nInvia un messaggio per parlare con Claude Code.\nUsa i bottoni per navigare.",
+                                        "parse_mode": "Markdown",
+                                        "reply_markup": {"inline_keyboard": keyboard}
+                                    }))
+                                    .send()
+                                    .await;
                                 continue;
                             }
 

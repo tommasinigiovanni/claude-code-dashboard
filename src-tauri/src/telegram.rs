@@ -24,7 +24,7 @@ pub async fn telegram_start_bot(
     auto_approve: Option<bool>,
 ) -> Result<TelegramBotStatus, String> {
     let emitter = TauriEmitter(app);
-    ccd_core::telegram::telegram_start_bot(emitter, bot_token, allowed_chat_id, project_path, auto_approve).await
+    ccd_core::telegram::telegram_start_bot(emitter, bot_token, allowed_chat_id, project_path, auto_approve, None).await
 }
 
 #[tauri::command]
