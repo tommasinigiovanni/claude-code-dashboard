@@ -307,8 +307,8 @@ export function LauncherPage() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">{t('launcher.title')}</h2>
+    <div className="p-4 md:p-6">
+      <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">{t('launcher.title')}</h2>
 
       {/* Status */}
       <div className="rounded-lg border border-border p-4 mb-6">
@@ -337,14 +337,14 @@ export function LauncherPage() {
           </p>
         )}
 
-        <div className="flex gap-2">
-          <Button onClick={() => handleLaunch()} disabled={!claudeInstalled}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={() => handleLaunch()} disabled={!claudeInstalled} className="w-full sm:w-auto">
             {t('launcher.launch')} {isEmbedded ? `(${t('launcher.embeddedTerminal')})` : ''}
           </Button>
           {isRemote ? (
             <RemoteFolderPicker onSelect={(path) => handleLaunch(path)} suggestions={recentProjects} />
           ) : (
-            <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled}>
+            <Button variant="outline" onClick={handleSelectAndLaunch} disabled={!claudeInstalled} className="w-full sm:w-auto">
               {t('launcher.selectAndLaunch')}
             </Button>
           )}
@@ -381,9 +381,9 @@ export function LauncherPage() {
       </div>
 
       {/* Contesto attivo */}
-      <div className="rounded-lg border border-border p-4 mb-6">
+      <div className="rounded-lg border border-border p-4 mb-6 overflow-hidden">
         <p className="text-sm font-medium mb-1">{t('launcher.activeContext')}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground truncate">
           {mode === 'global' ? 'Global (~/.claude/settings.json)' : `Project: ${projectPath}`}
         </p>
       </div>
