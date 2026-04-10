@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { autoBackup, telegramBotStatus, telegramStartBot } from '@/services/api'
+import { isWebMode, getStoredToken, setToken } from '@/services/transport'
 import { getSettings } from '@/pages/SettingsPage'
 import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -186,4 +187,54 @@ function App() {
   )
 }
 
-export default App
+function TokenGate({ children }: { children: React.ReactNode }) {
+  const [token, setTokenState] = useState(getStoredToken())
+  const [input, setInput] = useState('')
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    const t = input.trim()
+    if (!t) return
+    setToken(t)
+    setTokenState(t)
+  }, [input])
+
+  if (!isWebMode() || token) {
+    return <>{children}</>
+  }
+
+  return (
+    <div className="flex items-center justify-center h-screen bg-background">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-8 rounded-2xl border border-border bg-card max-w-sm w-full mx-4">
+        <img src="/app-icon.png" alt="CCD" className="w-16 h-16 rounded-xl" />
+        <h1 className="text-lg font-semibold">Claude Code Dashboard</h1>
+        <p className="text-sm text-muted-foreground text-center">Enter your access token to connect.</p>
+        <input
+          type="password"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Token"
+          autoFocus
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim()}
+          className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          Connect
+        </button>
+      </form>
+    </div>
+  )
+}
+
+function AppWithGate() {
+  return (
+    <TokenGate>
+      <App />
+    </TokenGate>
+  )
+}
+
+export default AppWithGate
