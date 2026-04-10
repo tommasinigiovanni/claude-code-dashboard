@@ -96,6 +96,7 @@ function App() {
   const [onboardingVisible, setOnboardingVisible] = useState(showOnboarding)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const setActivePage = useUiStore((s) => s.setActivePage)
 
   // Auto-backup on app start
@@ -166,9 +167,14 @@ function App() {
   return (
     <TooltipProvider>
       <div className="flex h-screen bg-background text-foreground">
-        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileMenuOpen}
+          onMobileClose={() => setMobileMenuOpen(false)}
+        />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <TopBar />
+          <TopBar onMenuClick={() => setMobileMenuOpen(true)} />
           <main className="flex-1 overflow-auto">
             <MainContent />
           </main>

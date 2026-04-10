@@ -64,9 +64,11 @@ const bottomNavItems: NavItem[] = [
 interface SidebarProps {
   collapsed: boolean
   onToggle: () => void
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const { activePage, setActivePage } = useUiStore()
   const { t } = useI18n()
   const [hasActiveSessions, setHasActiveSessions] = useState(false)
@@ -85,10 +87,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return () => clearInterval(interval)
   }, [])
 
+  const handleNav = (page: Page) => {
+    setActivePage(page)
+    onMobileClose?.()
+  }
+
   const renderItem = (item: { id: Page; labelKey: TranslationKey; icon: ReactNode }) => (
     <button
       key={item.id}
-      onClick={() => setActivePage(item.id)}
+      onClick={() => handleNav(item.id)}
       title={collapsed ? t(item.labelKey) : undefined}
       className={cn(
         'flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors',
@@ -108,9 +115,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     </button>
   )
 
-  return (
+  const sidebarContent = (
     <aside className={cn(
-      'flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-200',
+      'flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-200 h-full',
       collapsed ? 'w-14' : 'w-56'
     )}>
       <div className={cn('relative flex flex-col px-3 pt-4 pb-2', collapsed && 'items-center')}>
@@ -153,5 +160,23 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {bottomNavItems.map(renderItem)}
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Desktop: inline sidebar */}
+      <div className="hidden md:flex h-full">
+        {sidebarContent}
+      </div>
+      {/* Mobile: overlay sidebar */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={onMobileClose} />
+          <div className="relative z-10">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
