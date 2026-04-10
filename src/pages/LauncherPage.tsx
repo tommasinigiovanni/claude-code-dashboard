@@ -259,8 +259,8 @@ export function LauncherPage() {
   if (showEmbedded) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b border-border bg-card">
+          <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
             <TmuxSessionTabs
               activeSession={tmuxAttachSession}
               onSwitch={async (name) => {
@@ -278,15 +278,15 @@ export function LauncherPage() {
                   toast.success(t('common.pathCopied'))
                 }}
                 title="Clicca per copiare"
-                className="cursor-pointer"
+                className="cursor-pointer min-w-0"
               >
-                <Badge variant="secondary" className="text-xs font-mono truncate hover:bg-accent transition-colors">
+                <Badge variant="secondary" className="text-xs font-mono truncate max-w-[40vw] md:max-w-none hover:bg-accent transition-colors">
                   {launchPath ?? projectPath}
                 </Badge>
               </button>
             )}
           </div>
-          <Button variant="ghost" size="sm" onClick={() => { setShowEmbedded(false); setTmuxAttachSession(null) }}>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={() => { setShowEmbedded(false); setTmuxAttachSession(null) }}>
             {t('launcher.close')}
           </Button>
         </div>
