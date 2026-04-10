@@ -9,7 +9,11 @@ export function getTransport(): Transport {
     if (import.meta.env.VITE_TRANSPORT === 'websocket') {
       const wsUrl = import.meta.env.VITE_WS_URL
         || `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`
-      const token = new URLSearchParams(location.search).get('token') || ''
+      const urlToken = new URLSearchParams(location.search).get('token')
+      if (urlToken) {
+        localStorage.setItem('ccd-token', urlToken)
+      }
+      const token = urlToken || localStorage.getItem('ccd-token') || ''
       instance = new WebSocketTransport(`${wsUrl}?token=${token}`)
     } else {
       instance = new TauriTransport()
