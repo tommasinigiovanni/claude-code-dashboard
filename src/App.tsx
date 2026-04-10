@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { autoBackup, telegramBotStatus, telegramStartBot } from '@/services/api'
-import { isWebMode, getStoredToken, setToken } from '@/services/transport'
+import { isWebMode, getStoredToken, setToken, isTelegramWebApp, initTelegramAuth } from '@/services/transport'
 import { getSettings } from '@/pages/SettingsPage'
 import { OnboardingWizard, useOnboarding } from '@/components/OnboardingWizard'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -196,6 +196,18 @@ function App() {
 function TokenGate({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState(getStoredToken())
   const [input, setInput] = useState('')
+  const [tgAuth, setTgAuth] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (isWebMode() && isTelegramWebApp()) {
+      initTelegramAuth().then((ok) => {
+        setTgAuth(ok)
+        if (ok) setTokenState('tg')
+      })
+    } else {
+      setTgAuth(false)
+    }
+  }, [])
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
@@ -205,8 +217,19 @@ function TokenGate({ children }: { children: React.ReactNode }) {
     setTokenState(t)
   }, [input])
 
-  if (!isWebMode() || token) {
+  if (!isWebMode() || token || tgAuth === true) {
     return <>{children}</>
+  }
+
+  if (tgAuth === null) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <img src="/app-icon.png" alt="CCD" className="w-12 h-12 rounded-xl" />
+          <p className="text-sm text-muted-foreground">Connecting...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

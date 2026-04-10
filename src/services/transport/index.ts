@@ -2,19 +2,58 @@ import type { Transport } from './types'
 import { TauriTransport } from './tauri.transport'
 import { WebSocketTransport } from './websocket.transport'
 
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData: string
+        ready: () => void
+        expand: () => void
+        themeParams?: Record<string, string>
+      }
+    }
+  }
+}
+
 let instance: Transport | null = null
 
 const TOKEN_KEY = 'ccd-token'
+const TG_SESSION_KEY = 'ccd-tg-session'
 
 export function isWebMode(): boolean {
   return import.meta.env.VITE_TRANSPORT === 'websocket'
+}
+
+export function isTelegramWebApp(): boolean {
+  return !!window.Telegram?.WebApp?.initData
+}
+
+export async function initTelegramAuth(): Promise<boolean> {
+  const tg = window.Telegram?.WebApp
+  if (!tg?.initData) return false
+
+  tg.ready()
+  tg.expand()
+
+  // Check existing session
+  const existing = localStorage.getItem(TG_SESSION_KEY)
+  if (existing) return true
+
+  try {
+    const resp = await fetch('/tg-auth', { method: 'POST', body: tg.initData })
+    if (!resp.ok) return false
+    const data = await resp.json()
+    localStorage.setItem(TG_SESSION_KEY, data.token)
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function getStoredToken(): string {
   const urlToken = new URLSearchParams(location.search).get('token')
   if (urlToken) {
     localStorage.setItem(TOKEN_KEY, urlToken)
-    // Clean token from URL without reload
     const url = new URL(location.href)
     url.searchParams.delete('token')
     history.replaceState(null, '', url.toString())
@@ -24,7 +63,6 @@ export function getStoredToken(): string {
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token)
-  // Reset transport so it reconnects with new token
   if (instance) {
     instance.destroy()
     instance = null
@@ -36,6 +74,15 @@ export function getTransport(): Transport {
     if (isWebMode()) {
       const wsUrl = import.meta.env.VITE_WS_URL
         || `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`
+
+      // Telegram session takes priority
+      const tgSession = localStorage.getItem(TG_SESSION_KEY)
+      if (tgSession) {
+        instance = new WebSocketTransport(`${wsUrl}?tg_session=${tgSession}`)
+        return instance
+      }
+
+      // Fall back to static token
       const token = getStoredToken()
       instance = new WebSocketTransport(`${wsUrl}?token=${token}`)
     } else {
