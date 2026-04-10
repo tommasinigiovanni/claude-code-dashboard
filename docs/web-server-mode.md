@@ -34,10 +34,12 @@ ccd-server [OPTIONS] --token <TOKEN>
 Options:
   --port <PORT>              Port to listen on [default: 3100]
   --token <TOKEN>            Authentication token [env: CCD_TOKEN]
+  --bot-token <TOKEN>        Telegram bot token for Mini App auth [env: CCD_BOT_TOKEN]
   --static-dir <STATIC_DIR>  Directory with compiled frontend [default: ../dist]
 ```
 
 The token can be passed as a CLI flag or via the `CCD_TOKEN` environment variable.
+The bot token is optional — only needed if you want Telegram Mini App authentication.
 
 ## Authentication
 
@@ -51,6 +53,45 @@ The frontend reads the token from the URL query string automatically. When you o
 
 Requests with an invalid or missing token receive HTTP 401 Unauthorized.
 
+## Telegram Mini App (optional)
+
+You can open the dashboard directly inside Telegram as a Mini App. Authentication is automatic via Telegram's `initData` — no token needed.
+
+### Setup
+
+1. Start the server with your Telegram bot token:
+   ```bash
+   CCD_TOKEN=your_token CCD_BOT_TOKEN=your_bot_token ./target/release/ccd-server --port 3100 --static-dir dist
+   ```
+
+2. Configure the Menu Button via BotFather:
+   - Open @BotFather in Telegram
+   - Send `/mybots` > select your bot > Bot Settings > Menu Button
+   - Set the URL to your dashboard (e.g., `https://dashboard.yourdomain.com/`)
+
+3. Open your bot in Telegram and tap the "Dashboard" menu button. The dashboard opens in Telegram's WebView with automatic authentication.
+
+The bot also shows an "Open Dashboard" inline button when you send `/start` or `/menu`.
+
+### How it works
+
+- Telegram injects `initData` (cryptographically signed user data) into the WebView
+- The frontend detects Telegram and sends `initData` to `POST /tg-auth`
+- The server validates the HMAC-SHA256 signature using the bot token
+- On success, a session token is returned and used for the WebSocket connection
+- Sessions expire after 24 hours
+
+Browser access with the static token continues to work alongside Telegram auth.
+
+## PWA (Add to Home Screen)
+
+The dashboard can be installed as a PWA on mobile devices:
+
+- **Android Chrome**: tap the menu (3 dots) > "Install app" or "Add to Home Screen"
+- **iOS Safari**: tap Share > "Add to Home Screen"
+
+The app opens in standalone mode (no browser chrome). The auth token is persisted in localStorage — you only need to enter it once.
+
 ## Production Deployment (VM)
 
 ### 1. Clone and build on the VM
@@ -58,7 +99,6 @@ Requests with an invalid or missing token receive HTTP 401 Unauthorized.
 ```bash
 git clone https://github.com/tommasinigiovanni/claude-code-dashboard.git
 cd claude-code-dashboard
-git checkout feat/web-server-mode
 
 npm install
 VITE_TRANSPORT=websocket npm run build
@@ -79,6 +119,7 @@ Type=simple
 User=your_user
 WorkingDirectory=/path/to/claude-code-dashboard
 Environment=CCD_TOKEN=your_secret_token_here
+Environment=CCD_BOT_TOKEN=your_telegram_bot_token
 ExecStart=/path/to/claude-code-dashboard/target/release/ccd-server --static-dir /path/to/claude-code-dashboard/dist
 Restart=always
 RestartSec=5
@@ -151,7 +192,8 @@ ccd-server  (Axum, port 3100)
   |
   +-- GET /           -> serves dist/index.html
   +-- GET /assets/*   -> serves static files
-  +-- WS  /ws?token=  -> WebSocket JSON-RPC
+  +-- POST /tg-auth   -> Telegram initData validation
+  +-- WS  /ws?token=  -> WebSocket JSON-RPC (also accepts ?tg_session=)
         |
         v
       ccd-core  (shared business logic)
