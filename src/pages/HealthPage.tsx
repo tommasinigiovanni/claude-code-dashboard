@@ -88,7 +88,7 @@ export function HealthPage() {
 
       {/* Stats / summary bar */}
       {hasRun && results.length > 0 && (
-        <div className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4 rounded-lg border border-border bg-card px-4 py-2.5">
           <div className="flex items-center gap-2 text-sm">
             <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
               <HeartPulseIcon className="size-3.5 text-primary" />
@@ -96,31 +96,28 @@ export function HealthPage() {
             <span className="font-medium">{results.length}</span>
             <span className="text-muted-foreground">servers</span>
           </div>
-          <Separator orientation="vertical" className="h-5" />
+          <Separator orientation="vertical" className="h-5 hidden md:block" />
           <div className="flex items-center gap-1.5 text-sm">
             <CheckCircle2Icon className="size-3.5 text-green-500" />
             <span className="font-medium">{connectedCount}</span>
             <span className="text-muted-foreground">{t('health.statsConnected')}</span>
           </div>
           {disconnectedCount > 0 && (
-            <>
-              <Separator orientation="vertical" className="h-5" />
-              <div className="flex items-center gap-1.5 text-sm">
-                <XCircleIcon className="size-3.5 text-red-500" />
-                <span className="font-medium">{disconnectedCount}</span>
-                <span className="text-muted-foreground">{t('health.statsDisconnected')}</span>
-              </div>
-            </>
+            <div className="flex items-center gap-1.5 text-sm">
+              <XCircleIcon className="size-3.5 text-red-500" />
+              <span className="font-medium">{disconnectedCount}</span>
+              <span className="text-muted-foreground">{t('health.statsDisconnected')}</span>
+            </div>
           )}
-          <div className="ml-auto flex items-center gap-4">
+          <div className="flex items-center gap-3 ml-auto">
             {lastCheck && (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <ClockIcon className="size-3" />
-                {t('health.lastCheck')}: {formatRelativeTime(lastCheck, locale)}
+                <span className="hidden sm:inline">{t('health.lastCheck')}:</span> {formatRelativeTime(lastCheck, locale)}
               </div>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">{t('health.autoRefresh')}</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">{t('health.autoRefresh')}</span>
               <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
             </div>
           </div>

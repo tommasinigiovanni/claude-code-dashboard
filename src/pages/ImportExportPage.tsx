@@ -70,7 +70,7 @@ export function ImportExportPage() {
   return (
     <div className="space-y-3">
       <Label>{locale === 'it' ? 'Importa / Esporta configurazione' : 'Import / Export configuration'}</Label>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
           {locale === 'it' ? 'Copia config negli appunti' : 'Copy config to clipboard'}
         </Button>

@@ -428,10 +428,10 @@ export function SettingsPage() {
         title={locale === 'it' ? 'Aspetto' : 'Appearance'}
         description={locale === 'it' ? 'Tema e lingua dell\'interfaccia' : 'Theme and interface language'}
       >
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.theme')}</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(['dark', 'light', 'system'] as const).map((theme) => (
                 <Button key={theme} variant={settings.theme === theme ? 'default' : 'outline'} size="sm"
                   onClick={() => updateSetting('theme', theme)}>
@@ -442,7 +442,7 @@ export function SettingsPage() {
           </div>
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.language')}</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant={settings.language === 'it' ? 'default' : 'outline'} size="sm" onClick={() => updateSetting('language', 'it')}>🇮🇹 Italiano</Button>
               <Button variant={settings.language === 'en' ? 'default' : 'outline'} size="sm" onClick={() => updateSetting('language', 'en')}>🇬🇧 English</Button>
             </div>
@@ -560,7 +560,7 @@ export function SettingsPage() {
 
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t('settings.localData')}</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={() => {
                 for (const k of Object.keys(localStorage)) { if (k.startsWith('claude-dashboard-chat')) localStorage.removeItem(k) }
                 toast.success(t('common.chatCleared'))
