@@ -7,6 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 type HmacSha256 = Hmac<Sha256>;
 
 pub struct TgSession {
+    #[allow(dead_code)]
     pub user_id: i64,
     pub created_at: u64,
 }
