@@ -45,7 +45,11 @@
       "Bash(grep \"cost\" ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
       "Bash(python3 -c \"import sys,json; l=sys.stdin.readline\\(\\); d=json.loads\\(l.split\\('.jsonl:'\\)[1] if '.jsonl:' in l else l\\); print\\(json.dumps\\({k:d[k] for k in d if 'cost' in k.lower\\(\\) or 'usage' in k.lower\\(\\)}, indent=2\\)\\)\")",
       "Bash(grep -o '\"costUSD\":[0-9.]*\\\\|\"total_cost\":[0-9.]*' ~/.claude/projects/-Users-giovannitommasini-git-personal-ClaudeCodeDashboard/*.jsonl)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(VITE_TRANSPORT=websocket npm run build)",
+      "Bash(timeout 3 ./target/release/ccd-server --port 3100 --token test123 --static-dir dist)"
     ]
   }
 }
