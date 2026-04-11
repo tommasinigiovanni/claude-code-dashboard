@@ -5,7 +5,7 @@
 [![Made with AI](https://img.shields.io/badge/Made%20with-Claude%20Code%20%E2%9D%A4%EF%B8%8F-ff69b4)](https://claude.ai/code)
 [![Giovanni Tommasini](https://img.shields.io/badge/Giovanni%20Tommasini-CTO%20%26%20Developer-blue)](https://giovannitommasini.it/)
 
-**Claude Code Dashboard** is a desktop GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations.
+**Claude Code Dashboard** is a GUI for managing your Claude Code environment: MCP servers, Skills, Plugins, Sub-agents, and project configurations. Available as a **desktop app** (macOS) and a **web server** accessible from any browser or phone.
 
 ### [⬇️ Download for macOS (Apple Silicon)](https://github.com/tommasinigiovanni/claude-code-dashboard/releases/latest/download/Claude.Code.Dashboard_1.2.0_aarch64.dmg)
 
@@ -68,7 +68,10 @@ The goal is simple: make Claude Code accessible to everyone, not just developers
 - **External Terminals** - Support for Terminal, iTerm2, Warp, Alacritty, or custom
 - **Permission Approval** - PTY-based chat forwards Claude's permission requests as Approve/Reject buttons
 
-### Mobile Control
+### Mobile & Remote Access
+- **Web Server Mode** - Run on a VM, access from any browser or phone
+- **PWA** - Install on phone home screen, opens full-screen like a native app
+- **Telegram Mini App** - Open the dashboard directly inside Telegram with automatic auth
 - **Telegram Bot** - Control Claude Code from your phone with inline keyboard buttons
 - **Session Memory** - Telegram conversations maintain context across messages
 - **Session Switching** - `/sessions`, `/switch`, `/new` commands with tappable buttons
@@ -84,6 +87,7 @@ The goal is simple: make Claude Code accessible to everyone, not just developers
 | Layer | Technology |
 |-------|-----------|
 | Desktop Framework | **Tauri 2** (Rust + WebView) |
+| Web Server | **Axum** (Rust, WebSocket) |
 | Frontend | **React 18 + TypeScript** |
 | UI Components | **shadcn/ui** (base-ui) |
 | Styling | **Tailwind CSS v4** |
@@ -91,27 +95,31 @@ The goal is simple: make Claude Code accessible to everyone, not just developers
 | Terminal | **xterm.js + portable-pty** |
 | Build | **Vite** |
 
-## Quick start
+## Quick Start
+
+### Desktop App (Tauri)
 
 ```bash
-# Prerequisites
-# - Rust (rustup)
-# - Node.js >= 18
-# - Claude Code installed (npm install -g @anthropic-ai/claude-code)
-
-# Clone
-git clone https://github.com/tommasinigiovanni/ClaudeCodeDashboard.git
-cd ClaudeCodeDashboard
-
-# Install dependencies
+git clone https://github.com/tommasinigiovanni/claude-code-dashboard.git
+cd claude-code-dashboard
 npm install
-
-# Dev mode
 npm run tauri dev
-
-# Production build
-npm run tauri build
 ```
+
+### Web Server (remote/mobile access)
+
+```bash
+git clone https://github.com/tommasinigiovanni/claude-code-dashboard.git
+cd claude-code-dashboard
+npm install
+VITE_TRANSPORT=websocket npm run build
+cargo build -p ccd-server --release
+CCD_TOKEN=your_secret ./target/release/ccd-server --static-dir dist
+```
+
+Open `http://localhost:3100/?token=your_secret` in your browser.
+
+See [docs/web-server-mode.md](docs/web-server-mode.md) for production deployment (systemd, HTTPS, Telegram Mini App).
 
 ## Configuration files
 
