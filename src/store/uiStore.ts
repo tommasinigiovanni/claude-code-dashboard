@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type Page = 'mcp' | 'skills' | 'subagents' | 'hooks' | 'usage' | 'claudemd' | 'launcher' | 'settings' | 'docs' | 'credits' | 'profiles' | 'logs' | 'health' | 'changelog' | 'verification' | 'learning'
+export type Page = 'mcp' | 'skills' | 'subagents' | 'hooks' | 'usage' | 'claudemd' | 'launcher' | 'settings' | 'docs' | 'credits' | 'profiles' | 'logs' | 'health' | 'changelog' | 'verification' | 'learning' | 'tips'
 
 interface UiState {
   activePage: Page

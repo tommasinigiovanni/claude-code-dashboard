@@ -25,6 +25,7 @@ import {
   FileEditIcon,
   PlayCircleIcon,
   BrainIcon,
+  LightbulbIcon,
 } from 'lucide-react'
 
 type NavItem = { id: Page; labelKey: TranslationKey; icon: ReactNode }
@@ -48,6 +49,7 @@ const navSections: NavSection[] = [
   [
     { id: 'verification', labelKey: 'nav.verification' as TranslationKey, icon: <PlayCircleIcon className="size-4" /> },
     { id: 'learning', labelKey: 'nav.learning' as TranslationKey, icon: <BrainIcon className="size-4" /> },
+    { id: 'tips', labelKey: 'nav.tips' as TranslationKey, icon: <LightbulbIcon className="size-4" /> },
     { id: 'profiles', labelKey: 'nav.profiles', icon: <LayersIcon className="size-4" /> },
     { id: 'logs', labelKey: 'nav.logs', icon: <ScrollTextIcon className="size-4" /> },
     { id: 'health', labelKey: 'nav.health', icon: <ActivityIcon className="size-4" /> },

@@ -24,6 +24,7 @@ import { UsagePage } from '@/pages/UsagePage'
 import { ClaudeMdPage } from '@/pages/ClaudeMdPage'
 import { VerificationPage } from '@/pages/VerificationPage'
 import { LearningPage } from '@/pages/LearningPage'
+import { TipsPage } from '@/pages/TipsPage'
 import { CommandPalette } from '@/components/CommandPalette'
 import { useI18n } from '@/i18n/useI18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -87,6 +88,8 @@ function MainContent() {
       return <VerificationPage />
     case 'learning':
       return <LearningPage />
+    case 'tips':
+      return <TipsPage />
   }
 }
 

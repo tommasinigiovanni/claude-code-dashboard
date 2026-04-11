@@ -18,6 +18,7 @@ const translations = {
   'nav.credits': { it: 'Credits', en: 'Credits' },
   'nav.verification': { it: 'Verifica', en: 'Verification' },
   'nav.learning': { it: 'Memorie', en: 'Memories' },
+  'nav.tips': { it: 'Tips & Tricks', en: 'Tips & Tricks' },
 
   // TopBar
   'topbar.dashboard': { it: 'Dashboard', en: 'Dashboard' },
