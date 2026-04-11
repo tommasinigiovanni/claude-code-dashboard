@@ -226,33 +226,33 @@ function TokenGate({ children }: { children: React.ReactNode }) {
 
   if (tgAuth === null) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="flex items-center justify-center h-screen bg-[#1a1a2e] text-white">
         <div className="flex flex-col items-center gap-3">
           <img src="/app-icon.png" alt="CCD" className="w-12 h-12 rounded-xl" />
-          <p className="text-sm text-muted-foreground">Connecting...</p>
+          <p className="text-sm text-white/60">Connecting...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center justify-center h-screen bg-background">
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-8 rounded-2xl border border-border bg-card max-w-sm w-full mx-4">
-        <img src="/app-icon.png" alt="CCD" className="w-16 h-16 rounded-xl" />
+    <div className="flex items-center justify-center h-screen bg-[#1a1a2e] text-white">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-8 rounded-2xl border border-white/10 bg-white/5 max-w-sm w-full mx-4">
+        <img src="/app-icon.png" alt="Claude Code Dashboard" className="w-20 h-20 rounded-2xl" />
         <h1 className="text-lg font-semibold">Claude Code Dashboard</h1>
-        <p className="text-sm text-muted-foreground text-center">Enter your access token to connect.</p>
+        <p className="text-sm text-white/60 text-center">Enter your access token to connect.</p>
         <input
           type="password"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Token"
           autoFocus
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-500 disabled:opacity-50"
         >
           Connect
         </button>
